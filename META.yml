@@ -1,14 +1,14 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Archive-Builder
-version:      1.0
+version:      1.01
 version_from: lib/Archive/Builder.pm
 installdirs:  site
 requires:
     Class::Autouse:                1.01
     Class::Handle:                 0
-    Class::Inspector:              1.01
-    File::Flat:                    0.8
+    Class::Inspector:              1.04
+    File::Flat:                    0.91
     File::Spec:                    0.83
     IO::Scalar:                    2.104
     IO::Zlib:                      0

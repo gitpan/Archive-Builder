@@ -10,7 +10,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '1.0';
+	$VERSION = '1.01';
 	%_PARENT = ();
 }
 
@@ -178,13 +178,13 @@ sub file_list {
 }
 
 # Get a single file by name
-sub file { $_[0]->{zfiles}->{$_[1]} }
+sub file { defined $_[1] ? $_[0]->{zfiles}->{$_[1]} : undef }
 
 # Remove a single file by name
 sub remove_file {
 	my $self = shift;
-	my $name = $self->{zfiles}->{$_[0]} ? shift : return undef;
-	my $File = $self->{zfiles}->{$name};
+	my $name = defined $_[0] ? shift : return undef;
+	my $File = $self->{zfiles}->{$name} or return undef;
 
 	# Delete from our files
 	delete $self->{zfiles}->{$name};

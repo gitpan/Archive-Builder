@@ -1,5 +1,12 @@
 Revision history for Perl extension Archive::Builder
 
+1.01 Tue Apr 24 2004
+	- Fixed a bug in file-type support detection in Archive::Builder::Archive
+	- Turned on warnings for all tests, which would have caught it earlier
+	- Fixed several other warnings ( which were harmless )
+	- Increased module version requirements for some modules to cover
+	  potentially critical race conditions, and increase speed.
+
 1.0  Tue Dec  2 2003
 	- 0.9 introduced a bug in Archive::Builder::File->binary.
 	  Fixed the bug, and added a regression test for the bug.

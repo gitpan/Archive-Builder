@@ -10,11 +10,9 @@ use List::Util ();
 use File::Spec ();
 
 # Autoload anything any of our children might need
-use Class::Autouse qw{
-	File::Flat
-	Class::Inspector
-	IO::Scalar
-	};
+use Class::Autouse 'File::Flat',
+                   'Class::Inspector',
+                   'IO::Scalar';
 
 # Load the rest of the classes;
 use Archive::Builder::Section    ();
@@ -25,7 +23,7 @@ use Archive::Builder::Generators ();
 # Version
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.0';
+	$VERSION = '1.01';
 	$errstr  = '';
 }
 
@@ -142,13 +140,13 @@ sub section_list {
 }
 
 # Get a section by name
-sub section { $_[0]->{sections}->{$_[1]} }
+sub section { defined $_[1] ? $_[0]->{sections}->{$_[1]} : undef }
 
 # Remove a section, by name
 sub remove_section {
 	my $self = shift;
-	my $name = $self->{sections}->{$_[0]} ? shift : return undef;
-	my $Section = $self->{sections}->{$name};
+	my $name = defined $_[0] ? shift : return undef;
+	my $Section = $self->{sections}->{$name} or return undef;
 
 	# Delete from our sections
 	delete $self->{sections}->{$name};
@@ -661,7 +659,7 @@ L<Archive::Tar>, L<Archive::Zip>.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2002 Adam Kennedy. All rights reserved.
+Copyright (c) 2002-2004 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

@@ -8,7 +8,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.0';
+	$VERSION = '1.01';
 }
 
 
@@ -28,8 +28,8 @@ BEGIN {
 
 	# Which types are we able to create
 	foreach my $type ( keys %$dependencies ) {
-		$support->{$type} = grep { ! Class::Inspector->installed( $_ ) } 
-			@{$dependencies->{$type}} ? 0 : 1;
+		$support->{$type} = ! grep { ! Class::Inspector->installed( $_ ) } 
+			@{$dependencies->{$type}};
 	}
 }
 
@@ -280,7 +280,7 @@ L<Archive::Tar>, L<Archive::Zip>.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2002 Adam Kennedy. All rights reserved.
+Copyright (c) 2002-2004 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

@@ -7,8 +7,8 @@ WriteMakefile(
 		# Need by Archive Builder
 		Class::Autouse   => 1.01,
 		File::Spec       => 0.83,
-		File::Flat       => 0.8,
-		Class::Inspector => 1.01,
+		File::Flat       => 0.91,
+		Class::Inspector => 1.04,
 		IO::Scalar       => 2.104,
 		IO::Zlib         => 0,
 		Scalar::Util     => 1.11,
@@ -20,6 +20,6 @@ WriteMakefile(
 	},
 	($] >= 5.005) ? (
 		'AUTHOR'   => 'Adam Kennedy (cpan@ali.as)',
-		'ABSTRACT' => 'In memory file tree and archive generation framework',
+		'ABSTRACT' => 'In-memory file tree and archive generation framework',
 	) : (),
 );
