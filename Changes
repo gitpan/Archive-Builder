@@ -1,5 +1,9 @@
 Revision history for Perl extension Archive::Builder
 
+0.8  Thu Jul 17 15:20:02 2003
+	- Added ->reset method to flush generated file contents, 
+	  so they can be generated again if needed.
+
 0.7  Tue Jul  1 12:40:12 2003
 	- Prevent generated binary files from being broken
 

@@ -2,6 +2,7 @@ package Archive::Builder::Section;
 
 # A section is a tree of Archive::Builder::File's
 
+require 5.005;
 use strict;
 use UNIVERSAL 'isa';
 use Scalar::Util 'refaddr';
@@ -9,7 +10,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.7';
+	$VERSION = '0.8';
 	%_PARENT = ();
 }
 
@@ -58,9 +59,8 @@ sub test {
 	# Generate each file
 	foreach my $File ( $self->file_list ) {
 		unless ( defined $File->contents ) {
-			my $section = $self->name;
-			my $path = $File->path;
-			return $self->_error( "Generation failed for file '$path' in section '$section': "
+			return $self->_error( "Generation failed for file '" . $File->path
+				. "' in section '$self->{name}': "
 				. $File->errstr );
 		}
 	}
@@ -82,8 +82,7 @@ sub save {
 	foreach my $File ( $self->file_list ) {
 		my $filename = File::Spec->catfile( $base, $File->path );
 		unless ( $File->save( $filename ) ) {
-			my $name = $self->name;
-			return $self->_error( "Failed to save file in Section '$name'" );
+			return $self->_error( "Failed to save file '$filename' in Section '$self->{name}'" );
 		}
 	}
 
@@ -96,26 +95,27 @@ sub Builder { $_PARENT{refaddr $_[0]} }
 # Delete this from from it's parent, and remove all our children
 sub delete {
 	my $self = shift;
-	if ( $self->Section ) {
+	if ( $self->Builder ) {
 		# Remove from our parent
-		$self->Section->remove_file( $self->path );
+		$self->Builder->remove_section( $self->path );
 	}
-	
+
 	# Remove all our children
-	foreach ( $self->files ) {
+	foreach ( $self->file_list ) {
 		delete $Archive::Builder::File::_PARENT{ refaddr $_ };
 	}
 	$self->{zfiles} = {};
-	
+
 	return 1;
 }	
 
+# If any files have been generated, flush the content cache
+# so they will be generated again.
+# Just pass the call down to the files.
+sub reset { foreach ( $_[0]->file_list ) { $_->reset } 1 }
+
 # Get an Archive for just this section
-sub archive {
-	my $self = shift;
-	my $type = shift;
-	return Archive::Builder::Archive->new( $type, $self );
-}
+sub archive { Archive::Builder::Archive->new( $_[1], $_[0] ) }
 
 # Get the archive content hash
 sub _archive_content {
@@ -171,16 +171,11 @@ sub add_file {
 }
 
 # Get a copy of the hash of files
-sub files {
-	my $self = shift;
-	return 0 unless scalar keys %{ $self->{zfiles} };
-	return { %{ $self->{zfiles} } };
-}
+sub files { %{ $_[0]->{zfiles} } ? { %{ $_[0]->{zfiles} } } : 0 }
 
 # Return the files as a List, sorted by file name
 sub file_list {
-	my $self = shift;
-	my $files = $self->{zfiles};
+	my $files = $_[0]->{zfiles};
 	return map { $files->{$_} } sort keys %$files;
 }
 
@@ -192,10 +187,10 @@ sub remove_file {
 	my $self = shift;
 	my $name = $self->{zfiles}->{$_[0]} ? shift : return undef;
 	my $File = $self->{zfiles}->{$name};
-	
+
 	# Delete from our files
 	delete $self->{zfiles}->{$name};
-	
+
 	# Remove the parent link
 	delete $Archive::Builder::File::_PARENT{ refaddr $File };
 
@@ -250,8 +245,8 @@ sub _no_path_clashes {
 # Utility methods
 
 # Pass through error
-sub errstr { return Archive::Builder->errstr }
-sub _error { shift; return Archive::Builder->_error( @_ ) }
+sub errstr { Archive::Builder->errstr }
+sub _error { shift; Archive::Builder->_error(@_) }
 sub _clear { Archive::Builder->_clear }
 
 1;

@@ -67,8 +67,14 @@ DESCRIPTION
     ( especially in the case of "save()", where you may end up with only
     part of the files written to disk.
 
-    Some procedures to address these limitations will be added as the module
-    evolves.
+    To avoid this, in most cases you should "test()" the Archive or Section
+    first. This will generate all of the files, and cache them. A "save()"
+    or "archive()" done after this will be done with the cached generated
+    content.
+
+    This should be done whenever you have a large of complex generation
+    tree, that you consider has a non-zero chance of one of the files
+    failing to generate correctly.
 
 METHODS
     The methods for the three main classes involved in generation trees,
@@ -121,7 +127,7 @@ Archive::Builder
     Returns "undef" if no such section exists.
 
   file_count()
-    Returns the total number of files in ass sections in the builder
+    Returns the total number of files in all sections in the builder
 
   save( directory )
     Generates the file tree for the entire builder and attempts to save it
@@ -137,6 +143,13 @@ Archive::Builder
     memory leaks due to circular dependencies.
 
     The "delete" method always returns true.
+
+  reset()
+    If the contents of any of the files in the Archive::Builder has been
+    generated ( and thus cached ), the "reset" method will remove any cached
+    content from the files, forcing them to be generated again.
+
+    The "reset" method always returns true.
 
   archive( type )
     Creates a handle to an archive of a specified type related to the
@@ -248,7 +261,14 @@ Archive::Builder::Section
     The "delete" method deletes a Section, removing it from it's parent
     Builder if applicable, and removing all child Files from the Section.
 
-    Always returns true.
+    The "delete" method always returns true.
+
+  reset()
+    If the contents of any of the files in the Section has been generated (
+    and thus cached ), the "reset" method will remove any cached content
+    from the files, forcing them to be generated again.
+
+    The "reset" method always returns true.
 
   archive( type )
     As for the "Archive::Builder" "acrhive" method, creates an archive
@@ -332,6 +352,13 @@ Archive::Builder::File
   delete()
     If added to a Section, the "delete" method allows us to remove and
     delete the file from the parent Section. Always returns true.
+
+  reset()
+    If the file has been generated ( and thus cached ), the "reset" method
+    will remove any cached content from the files, forcing it to be
+    generated again.
+
+    The "reset" method always returns true.
 
 TODO
     Better control over caching, more archive types, pre-generation testing.

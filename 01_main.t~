@@ -6,7 +6,7 @@ use strict;
 use lib '../../modules'; # Development testing
 use lib '../lib';           # Installation testing
 use UNIVERSAL 'isa';
-use Test::More tests => 317;
+use Test::More tests => 306;
 use Class::Autouse qw{:devel};
 use Class::Handle;
 

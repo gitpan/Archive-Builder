@@ -9,7 +9,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.7';
+	$VERSION = '0.8';
 	%_PARENT = ();
 }
 
@@ -44,7 +44,7 @@ sub new {
 }
 
 # Accessor methods
-sub path { $_[0]->{path} }
+sub path      { $_[0]->{path} }
 sub generator { $_[0]->{generator} }
 sub arguments { $_[0]->{arguments} ? [@{ $_[0]->{arguments} }] : 0 }
 
@@ -69,7 +69,7 @@ sub save {
 	if ( $self->{executable} ) {
 		chmod 0755, $filename;
 	}
-	
+
 	return 1;
 }
 
@@ -77,21 +77,15 @@ sub save {
 # which should never be in a text file, but almost always is in binary files.
 sub binary {
 	my $self = shift;
-	my $contents = $self->contents;
-	return index($$contents, "\000") == -1 ? 0 : 1;
+	my $contents = $self->contents or return undef;
+	return index($$contents, "\000") == -1 ? '' : 1;
 }
 
 # Flag a File as being executable
-sub executable {
-	my $self = shift;
-	$self->{executable} = 1;
-}
+sub executable { $_[0]->{executable} = 1 }
 
 # Get our parent Section
-sub Section {
-	my $self = shift;
-	return $_PARENT{ refaddr $self };
-}
+sub Section { $_PARENT{ refaddr $_[0] } }
 
 # Delete this from from it's parent
 sub delete {
@@ -103,6 +97,10 @@ sub delete {
 	
 	return 1;
 }	
+
+# If the content has been generated, remove it so it will
+# be generated again. ( Possibly with a different result )
+sub reset { delete $_[0]->{contents}; 1 }
 
 
 
@@ -146,7 +144,7 @@ sub _contents {
 	return undef unless isa( $result, 'SCALAR' );
 
 	# Clean up newlines in text files
-	if ( index($$result, "\000") == -1 ) {
+	if ( index($$result, "\000") == -1 ) { # If not a binary file
 		$$result =~ s/(?:\015\012|\015|\012)/\n/g;
 	}
 	
@@ -161,8 +159,8 @@ sub _contents {
 # Utility Methods
 
 # Pass through error
-sub errstr { return Archive::Builder->errstr }
-sub _error { shift; return Archive::Builder->_error( @_ ) }
+sub errstr { Archive::Builder->errstr }
+sub _error { shift; Archive::Builder->_error(@_) }
 sub _clear { Archive::Builder->_clear }
 
 1;

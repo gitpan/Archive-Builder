@@ -12,6 +12,7 @@ WriteMakefile(
 		IO::Scalar       => 2.104,
 		IO::Zlib         => 0,
 		Scalar::Util     => 1.11,
+		List::Util       => 0,
 
 		# Needed by tests
 		Test::More       => 0,

@@ -3,12 +3,12 @@ package Archive::Builder::Archive;
 # Represents the actual or potential Archive.
 
 use strict;
-use UNIVERSAL qw{isa can};
+use UNIVERSAL 'isa', 'can';
 use Archive::Builder ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.7';
+	$VERSION = '0.8';
 }
 
 

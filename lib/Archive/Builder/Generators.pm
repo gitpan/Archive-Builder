@@ -60,13 +60,8 @@ sub handle {
 		$contents .= $buffer;
 	}
 
-	if ( defined $rv ) {
-		# Finished normally
-		return \$contents;
-	} else {
-		# Error
-		return $File->_error( 'Error while reading from handle' );
-	}
+	return defined $rv ? \$contents
+		: $File->_error( 'Error while reading from handle' );
 }	
 
 
@@ -271,7 +266,3 @@ The full text of the license can be found in the
 LICENSE file included with this module.
 
 =cut
-
-
-
-

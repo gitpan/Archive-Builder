@@ -3,27 +3,30 @@ package Archive::Builder;
 # This packages provides a simplified object for a collection of generated
 # files, and ways to then distribute the files.
 
+require 5.005;
 use strict;
 use UNIVERSAL 'isa';
+use List::Util ();
+use File::Spec ();
 
 # Autoload anything any of our children might need
 use Class::Autouse qw{
-	File::Spec
 	File::Flat
 	Class::Inspector
 	IO::Scalar
 	};
 
 # Load the rest of the classes;
-use Archive::Builder::Section ();
-use Archive::Builder::File ();
-use Archive::Builder::Archive ();
+use Archive::Builder::Section    ();
+use Archive::Builder::File       ();
+use Archive::Builder::Archive    ();
 use Archive::Builder::Generators ();
 
 # Version
-use vars qw{$VERSION};
+use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.7';
+	$VERSION = '0.8';
+	$errstr  = '';
 }
 
 
@@ -34,24 +37,10 @@ BEGIN {
 # Main Interface Methods
 
 # Constructor
-sub new {
-	my $class = shift;
-	return bless {
-		sections => {},
-		}, $class;
-}
+sub new { bless { sections => {} }, shift }
 
 # Test generate and cache all files.
-sub test {
-	my $self = shift;
-
-	# Run the test for each section.
-	foreach my $Section ( $self->section_list ) {
-		$Section->test or return undef;
-	}
-
-	return 1;
-}
+sub test { foreach ( $_[0]->section_list ) { $_->test or return undef } 1 }
 
 # Save all files to disk
 sub save {
@@ -74,24 +63,17 @@ sub save {
 	return 1;
 }
 
-# Explicitly delete Archive
-sub delete {
-	my $self = shift;
-	
-	# Remove all our children
-	foreach ( $self->sections ) {
-		$_->delete;
-	}
+# Explicitly delete Archive.
+# Just pass the call down to the sections.
+sub delete { foreach ( $_[0]->section_list ) { $_->delete } 1 }
 
-	return 1;
-}
+# If any files have been generated, flush the content cache
+# so they will be generated again.
+# Just pass the call down to the sections.
+sub reset { foreach ( $_[0]->section_list ) { $_->reset } 1 }
 
 # Create a new archive for the Builder
-sub archive {
-	my $self = shift;
-	my $type = shift;
-	return Archive::Builder::Archive->new( $type, $self );
-}
+sub archive { Archive::Builder::Archive->new( $_[1], $_[0] ) }
 
 # Create a more shorthand set of data, keying path against content ref
 sub _archive_content {
@@ -126,9 +108,7 @@ sub new_section {
 	my $Section = Archive::Builder::Section->new( @_ )
 		or return undef;
 
-	# Add the new section
-	return $self->add_section( $Section )
-		? $Section : undef;
+	$self->add_section($Section) and return $Section;
 }
 
 # Add an existing section
@@ -153,16 +133,11 @@ sub add_section {
 }
 
 # Get the hash of sections
-sub sections {
-        my $self = shift;
-        return 0 unless scalar keys %{ $self->{sections} };
-        return { %{ $self->{sections} } };
-}
+sub sections { %{$_[0]->{sections}} ? { %{$_[0]->{sections}} } : 0 }
 
 # Get the sections as a list
 sub section_list {
-	my $self = shift;
-	my $sections = $self->{sections};
+	my $sections = $_[0]->{sections};
 	return map { $sections->{$_} } sort keys %$sections;
 }
 
@@ -174,10 +149,10 @@ sub remove_section {
 	my $self = shift;
 	my $name = $self->{sections}->{$_[0]} ? shift : return undef;
 	my $Section = $self->{sections}->{$name};
-	
+
 	# Delete from our sections
 	delete $self->{sections}->{$name};
-	
+
 	# Remove the parent link
 	delete $Archive::Builder::Section::_PARENT{ refaddr $Section };
 
@@ -186,16 +161,7 @@ sub remove_section {
 
 # Returns the number of files in the Builder, by totalling
 # all it's sections
-sub file_count {
-	my $self = shift;
-	my $files = 0;
-
-	foreach ( $self->section_list ) {
-		$files += $_->file_count;
-	}
-
-	return $files;
-}
+sub file_count { List::Util::sum map { $_->file_count } $_[0]->section_list or 0 }
 
 
 
@@ -212,8 +178,9 @@ sub _check {
 	if ( $type eq 'name' ) {
 		return '' unless defined $string;
 		return $string =~ /^\w{1,31}$/ ? 1 : '';
+	}
 
-	} elsif ( $type eq 'relative path' ) {
+	if ( $type eq 'relative path' ) {
 		# This makes sure a directory isn't bad
 		return '' unless defined $string;
 		return '' unless length $string;
@@ -232,8 +199,9 @@ sub _check {
 
 		# Is the path absolute
 		return File::Spec->file_name_is_absolute( $string ) ? '' : 1;
-
-	} elsif ( $type eq 'generator' ) {
+	}
+	
+	if ( $type eq 'generator' ) {
 		return $either->_error( 'No generator defined' ) unless defined $string;
 
 		# Look for illegal characters
@@ -242,15 +210,11 @@ sub _check {
 		}
 
 		# Is it a valid alias
-		unless ( $string =~ /::/ ) {
-			$string = "Archive::Builder::Generators::$string";
-		}
+		$string = "Archive::Builder::Generators::$string" unless $string =~ /::/;
 
 		# All is good if the function is already loaded
 		{ no strict 'refs';
-			if ( defined *{"$string"}{CODE} ) {
-				return 1;
-			}
+			return 1 if defined *{"$string"}{CODE};
 		}
 
 		# Does the class exist?
@@ -259,17 +223,13 @@ sub _check {
 			return $either->_error( "Package '$module' does not appear to be present" );
 		}
 
-		# Looks good
 		return 1;
-
-	} else {
-		return undef;
 	}
+
+	return undef;
 }
 
 # Error handling
-use vars qw{$errstr};
-BEGIN { $errstr = '' }
 sub errstr { $errstr }
 sub _error { $errstr = $_[1]; undef }
 sub _clear { $errstr = '' }
@@ -354,8 +314,13 @@ generation of a file fails, an action may have already been taken ( especially
 in the case of C<save()>, where you may end up with only part of the files
 written to disk.
 
-Some procedures to address these limitations will be added as the module
-evolves.
+To avoid this, in most cases you should C<test()> the Archive or Section 
+first. This will generate all of the files, and cache them. A C<save()> or 
+C<archive()> done after this will be done with the cached generated content.
+
+This should be done whenever you have a large of complex generation tree, 
+that you consider has a non-zero chance of one of the files failing to
+generate correctly.
 
 =head1 METHODS
 
@@ -415,7 +380,7 @@ C<undef> if no such section exists.
 
 =head2 file_count()
 
-Returns the total number of files in ass sections in the builder
+Returns the total number of files in all sections in the builder
 
 =head2 save( directory )
 
@@ -428,11 +393,19 @@ C<undef> if an error occurs, or the directory is bad.
 
 =head2 delete()
 
-Because of the structure used to support the parent methods, you should 
+Because of the structure used to support the parent methods, you should
 probably explicitly delete Builds when you are done with them to avoid
 memory leaks due to circular dependencies.
 
 The C<delete> method always returns true.
+
+=head2 reset()
+
+If the contents of any of the files in the Archive::Builder has been
+generated ( and thus cached ), the C<reset> method will remove any cached
+content from the files, forcing them to be generated again.
+
+The C<reset> method always returns true.
 
 =head2 archive( type )
 
@@ -556,7 +529,15 @@ Returns C<undef> if an error during generation or saving occurs.
 The C<delete> method deletes a Section, removing it from it's parent Builder
 if applicable, and removing all child Files from the Section.
 
-Always returns true.
+The C<delete> method always returns true.
+
+=head2 reset()
+
+If the contents of any of the files in the Section has been generated 
+( and thus cached ), the C<reset> method will remove any cached
+content from the files, forcing them to be generated again.
+
+The C<reset> method always returns true.
 
 =head2 archive( type )
 
@@ -646,6 +627,13 @@ Returns C<undef> if a generation permissions error occurs.
 
 If added to a Section, the C<delete> method allows us to remove and delete the 
 file from the parent Section. Always returns true.
+
+=head2 reset()
+
+If the file has been generated ( and thus cached ), the C<reset> method will
+remove any cached content from the files, forcing it to be generated again.
+
+The C<reset> method always returns true.
 
 =head1 TODO
 
