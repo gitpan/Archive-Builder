@@ -15,4 +15,4 @@ t/04_practical.t
 t/05_generators.t
 t/06_archives.t
 t/07_binary.t
-META.yml                                Module meta-data (added by MakeMaker)
+META.yml                                 Module meta-data (added by MakeMaker)
