@@ -5,9 +5,14 @@ package Archive::Builder::Generators;
 
 use strict;
 use UNIVERSAL 'isa';
-use Class::Autouse qw{
-	File::Flat
-	};
+use Archive::Builder ();
+
+
+
+
+
+#####################################################################
+# Trvial Generators
 
 # Recieves as an argument the exact string the file should contain
 sub string {
@@ -63,6 +68,13 @@ sub handle {
 		return $File->_error( 'Error while reading from handle' );
 	}
 }	
+
+
+
+
+
+#####################################################################
+# Common Advanced Generators
 
 # The template generator will only work if the Template Toolkit is installed.
 # The first argument is an instantiation of a Template object.

@@ -1,5 +1,8 @@
 Revision history for Perl extension Archive::Builder
 
+0.4  Sun Dec 15 08:54:10 2002
+	- Everything should finally work, be tested, and be documented
+
 0.2  Tue Dec 10 11:57:55 2002
 	- Change name from Archive::Generator to Archive::Builder
 	- Changed most of the method names

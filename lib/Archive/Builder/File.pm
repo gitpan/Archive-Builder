@@ -4,17 +4,7 @@ package Archive::Builder::File;
 
 use strict;
 use UNIVERSAL 'isa';
-use Class::Autouse qw{
-	File::Spec
-	File::Flat
-	Archive::Builder
-	};
-
-# Version
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = 0.1;
-}
+use Archive::Builder ();
 
 
 

@@ -34,6 +34,9 @@ init();
 ########################################################################
 # Save tests
 
+# Adding additional file_count test in
+is( $Generator->file_count, 6, '->file_count is correct' );
+
 # Try to save a single file
 my $rv = $Generator->section( 'one' )->file( 'this' )->save( './first/file.txt' );
 ok( $rv, 'File ->save returns true' );

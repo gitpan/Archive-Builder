@@ -3,21 +3,18 @@ package Archive::Builder::Archive;
 # Represents the actual or potential Archive.
 
 use strict;
-use Class::Inspector ();
-use Class::Autouse qw{
-	IO::Scalar
-	File::Flat
-	};
+use UNIVERSAL qw{isa can};
+use Archive::Builder ();
 
 # This module makes use of several Archive related modules as needed.
 # To start, catalogue the ones we can use.
 use vars qw{$dependencies $support};
 BEGIN {
 	$dependencies = {
-		zip      => [ 'Archive::Zip' ],
+		zip      => [ 'Archive::Zip', 'Compress::Zlib' ],
 		tar      => [ 'Archive::Tar' ],
-		tgz      => [ 'Archive::Tar' ],
-		'tar.gz' => [ 'Archive::Tar' ],
+		tgz      => [ 'Archive::Tar', 'Compress::Zlib' ],
+		'tar.gz' => [ 'Archive::Tar', 'Compress::Zlib' ],
 		};
 	
 	# Which types are we able to create
@@ -76,12 +73,19 @@ sub type { $_[0]->{type} }
 # Get the generated file as a scalar ref
 sub generate {
 	my $self = shift;
-	return $self->{generated} or 
-	$self->{generated} = $self->_generate;
+	return $self->{generated} || 
+	($self->{generated} = $self->_generate);
 }
 
 sub _generate {
 	my $self = shift;
+	
+	# Load the required modules
+	my @modules = @{ $dependencies->{ $self->{type} } };
+	foreach ( @modules ) {
+		Class::Autouse->load( $_ );
+	}
+	
 	if ( $self->{type} eq 'zip' ) {
 		return $self->_zip;
 	} elsif ( $self->{type} eq 'tar' ) {
@@ -132,25 +136,75 @@ sub save {
 #####################################################################
 # Generators
 
+# We should never get to these methods if the correct modules arn't
+# installed. They should also be loaded.
+
 sub _zip {
 	my $self = shift;
-	die 'INCOMPLETE';
+	
+	# Create the new, empty archive
+	my $Archive = Archive::Zip->new();
+	
+	# Add each file to it
+	foreach my $path ( keys %{ $self->{files} } ) {
+		my $member = $Archive->addString( ${ $self->{files}->{$path} }, $path );
+		$member->desiredCompressionMethod( Archive::Zip::COMPRESSION_DEFLATED() );
+	}
+	
+	# Now stringify the Archive and return it
+	my $handle = IO::Scalar->new();
+	return $Archive->writeToFileHandle( $handle ) == Archive::Zip::AZ_OK()
+		? $handle->sref : undef;
 }
 
 sub _tar {
 	my $self = shift;
-	die 'INCOMPLETE';
+	
+	# Create the empty tar object
+	my $Archive = Archive::Tar->new();
+	unless ( $Archive ) {
+		return $self->_error( 'Error creating tar object' );
+	}
+	
+	# Add each file to it
+	foreach my $path ( keys %{ $self->{files} } ) {
+		$Archive->add_data( $path, ${ $self->{files}->{$path} } );
+	}
+	
+	# Write the archive to a scalar via a tied handle
+	my $string = $Archive->write();
+	return defined $string ? \$string : undef;
 }
 
 sub _tar_gz {
 	my $self = shift;
-	die 'INCOMPLETE';
+	
+	# Get the normal tar
+	my $tar = $self->_tar() or return undef;
+	
+	# Compress it
+	my $compressed = Compress::Zlib::memGzip( $$tar );
+	return $compressed ? \$compressed : undef;
 }
 
+# Exactly the same as _tar_gz
 sub _tgz {
 	my $self = shift;
-	die 'INCOMPLETE';
+	return $self->_tar_gz;	
 }
+
+
+
+
+
+
+#####################################################################
+# Utility methods
+
+# Pass through error
+sub errstr { return Archive::Builder->errstr }
+sub _error { shift; return Archive::Builder->_error( @_ ) }
+sub _clear { Archive::Builder->_clear }
 
 1;
 

@@ -40,14 +40,18 @@ is( Archive::Builder->errstr, '', '->errstr correctly starts at ""' );
 my $methods = {
 	'Archive::Builder' => [ qw{
 		new errstr
-		add_section new_section section sections section_list remove_section
+		add_section new_section section sections section_list remove_section file_count
 		} ],
 	'Archive::Builder::Section' => [ qw{
 		name path errstr new
-		add_file new_file file files file_list remove_file
+		add_file new_file file files file_list remove_file file_count
 		} ],
 	'Archive::Builder::File' => [ qw{
 		new path errstr generator arguments
+		} ],
+	'Archive::Builder::Archive' => [qw{
+		types
+		new type generate save
 		} ],
 	};
 foreach my $class ( sort keys %$methods ) {
@@ -69,6 +73,7 @@ my $Trivial = Archive::Builder->new();
 ok( $Trivial, 'Archive::Builder constructor returns true' );
 my $expected = bless { sections => {} }, 'Archive::Builder';
 is_deeply( $Trivial, $expected, 'Creation of trivial Archive::Builder returns expected value' );
+is( $Trivial->file_count, 0, 'Trivial builder has correct file count' );
 my $Generator = $Trivial;
 
 # Create a trivial section
@@ -90,6 +95,7 @@ foreach ( undef, '', 'bad/../path', 'bad\.\.path', '/path' ) {
 ok( $Section->path( 'path' ), '->path( path ) returns true' );
 is( $Section->path , 'path', '->path( path ) changes the path' );
 $expected2->{path} = 'path';
+is( $Section->file_count, 0, '->file_count returns expected 0' );
 
 # Create a simple file
 ok( ! Archive::Builder::File->new(), '->new() fails' );
@@ -118,7 +124,8 @@ is( $File->arguments, 0, '->arguments returns expected value' );
 ###################################################################
 # Test error handling
 
-my @things = ( qw{Archive::Builder Archive::Builder::Section Archive::Builder::File},
+my @things = ( qw{Archive::Builder Archive::Builder::Section Archive::Builder::File
+		  Archive::Builder::Archive},
 	$Generator, $Section, $File );
 my $i = 0;
 foreach my $this ( @things ) {
@@ -140,6 +147,7 @@ foreach my $this ( @things ) {
 # Manipulating files in sections
 
 is( $Section->files, 0, '->files returns expected value for empty Section' );
+is( $Section->file_count, 0, '->file_count returns epected value for empty Section' );
 ok( ! $Section->add_file(), '->add_file() returns false' );
 is_deeply( $Section, $expected2, '->add_file() doesnt alter section' );
 foreach ( undef, '', 1, bless( {}, 'blah' )) {
@@ -149,6 +157,7 @@ foreach ( undef, '', 1, bless( {}, 'blah' )) {
 ok( $Section->add_file( $File ), '->add_file( File ) returns true' );
 $expected2->{zfiles}->{path} = $expected3;
 is_deeply( $Section, $expected2, '->add_file( File ) alters Section correctly' );
+is( $Section->file_count, 1, '->file_count goes up' );
 
 ok( ! $Section->new_file(), '->new_file() returns false' );
 is_deeply( $Section, $expected2, '->new_file() doesnt alter Section' );
@@ -159,23 +168,31 @@ foreach ( undef, '', 'bad/../path', 'bad\.\.path', '/path' ) {
 	is_deeply( $Section, $expected2, '->new_file( path, Archive::Builder ) doesnt alter the section' );
 }
 foreach ( undef, '', 'main::nonexistant', 'Foo::bar' ) {
-	ok( ! $Section->new_file( 'path2', $_ ), '->new_file( path, Archive::Builder ) returns false for bad geneartor' );
+	ok( ! $Section->new_file( 'path2/path3', $_ ), '->new_file( path, Archive::Builder ) returns false for bad geneartor' );
 	is_deeply( $Section, $expected2, '->new_file( path, Archive::Builder ) doesnt alter the section' );
 }
 ok( ! $Section->new_file( 'path', 'main::generator' ), '->new_file( path, Archive::Builder ) returns false for existing path' );
 is_deeply( $Section, $expected2, '->new_file( path, Archive::Builder ) doesnt alter the section' );
 
-my $rv = $Section->new_file( 'path2', 'main::generator' );
+my $rv = $Section->new_file( 'path2/path3', 'main::generator' );
 ok( $rv, '->new_file( path, Archive::Builder ) returns true for good values' );
-my $expected4 = bless { path => 'path2', generator => 'main::generator', arguments => 0 }, 'Archive::Builder::File';
-$expected2->{zfiles}->{path2} = $expected4;
+my $expected4 = bless { path => 'path2/path3', generator => 'main::generator', arguments => 0 }, 'Archive::Builder::File';
+$expected2->{zfiles}->{'path2/path3'} = $expected4;
 is_deeply( $rv, $expected4, '->new_file( path, generator ) returns the new file' );
 is_deeply( $Section, $expected2, '->new_file( path, generator ) alters Section in expected way' );
+is( $Section->file_count, 2, '->file_count goes up' );
 
-is_deeply( $Section->files, { 'path', $expected3, 'path2', $expected4 }, '->files returns expected value' );
+is_deeply( $Section->files, { 'path', $expected3, 'path2/path3', $expected4 }, '->files returns expected value' );
 my @List = $Section->file_list;
 my @Expe = ( $expected3, $expected4 );
 is_deeply( \@List, \@Expe, '->file_list returns expected value' );
+
+# Files that fail because they clash
+foreach ( 'path', 'path2/path3', 'path/path2', 'path2' ) {
+	ok( ! $Section->new_file( $_, 'main::generator' ), '->new_file( path, Archive::Builder ) returns false for clashing' );
+	is_deeply( $Section, $expected2, '->new_file( path, Archive::Builder ) doesnt alter the section' );
+}
+
 
 is_deeply( $expected3, $Section->file( 'path' ), '->file returns expected for existing file' );
 ok( ! $Section->file( 'nonexistant' ), '->file returns false for nonexistant path' );
@@ -230,6 +247,8 @@ is_deeply( $Generator->sections, { 'name' => $expected2, 'name2' => $expected5 }
 @List = $Generator->section_list;
 @Expe = ( $expected2, $expected5 );
 is_deeply( \@List, \@Expe, '->section_list returns the expected structure' );
+
+is( $Generator->file_count, 1, 'Generaotr has correct file count' );
 
 is_deeply( $Generator->section( 'name' ), $expected2, '->section returns the expected structure' );
 ok( ! $Generator->section(), '->section() fails as expected' );

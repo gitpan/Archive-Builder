@@ -11,4 +11,4 @@ lib/Archive/Builder/Section.pm
 t/01_main.t
 t/02_practical.t
 t/03_generators.t
-test.txt
+t/04_archives.t

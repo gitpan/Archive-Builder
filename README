@@ -120,6 +120,9 @@ Archive::Builder
     Removes a section of a given name from the builder, if it exists.
     Returns "undef" if no such section exists.
 
+  file_count()
+    Returns the total number of files in ass sections in the builder
+
   save( directory )
     Generates the file tree for the entire builder and attempts to save it
     below a given directory. The passed directory does not have to exist, it
@@ -214,9 +217,12 @@ Archive::Builder::Section
     Returns a list of all the file objects, sorted by path. Returns a null
     array "()" if no files exist within the section.
 
-  remove_section( path )
+  remove_file( path )
     Removes the file object with the given path from the section. Returns
     "undef" if no such path exists within the section.
+
+  file_count()
+    Returns the number of files contained in the section
 
   save( directory )
     The "save()" method works the same as the "Archive::Builder" "save"

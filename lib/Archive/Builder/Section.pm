@@ -4,17 +4,8 @@ package Archive::Builder::Section;
 
 use strict;
 use UNIVERSAL 'isa';
-use Class::Autouse qw{
-	File::Spec
-	File::Flat
-	Archive::Builder
-	};
+use Archive::Builder ();
 
-# Version
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = 0.1;
-}
 
 
 
@@ -54,6 +45,22 @@ sub path {
 	return 1;
 }	
 
+# Test generate and cache all files
+sub test {			
+	my $self = shift;
+	
+	# Generate each file
+	foreach my $File ( $self->file_list ) {
+		unless ( defined $File->contents ) {
+			my $section = $self->name;
+			my $path = $File->path;
+			return $self->_error( "Generation failed for file '$path' in section '$section'" );
+		}
+	}
+	
+	return 1;
+}
+
 # Save the entire section
 sub save {
 	my $self = shift;
@@ -83,6 +90,20 @@ sub archive {
 	return Archive::Builder::Archive->new( $type, $self );
 }
 
+# Get the archive content hash
+sub _archive_content {
+	my $self = shift;
+	
+	# Add from each of the Files
+	my %tree = ();
+	foreach my $File ( $self->file_list ) {
+		my $contents = $File->contents or return undef;
+		$tree{$File->path} = $contents;
+	}
+	
+	return \%tree;
+}
+
 
 
 
@@ -108,14 +129,13 @@ sub add_file {
 	my $File = isa( $_[0], 'Archive::Builder::File' ) ? shift 
 		: return $self->_error( 'Did not pass a File as argument' );
 	
-	# Does the file already exist?
-	my $path = $File->path;
-	if ( exists $self->{zfiles}->{$path} ) {
-		return $self->_error( "A file already exists with the path '$path'" );
+	# Does the file clash with an existing one
+	unless ( $self->_no_path_clashes( $File->path ) ) {
+		return $self->_error( "Bad file path: " . $self->errstr );
 	}
 	
 	# Add the File
-	$self->{zfiles}->{$path} = $File;
+	$self->{zfiles}->{$File->path} = $File;
 	return 1;
 }
 
@@ -139,6 +159,39 @@ sub file { $_[0]->{zfiles}->{$_[1]} }
 # Remove a single file by name
 sub remove_file { delete $_[0]->{zfiles}->{$_[1]} }
 
+# Get a count of the number of files
+sub file_count { scalar keys %{ $_[0]->{zfiles} } }
+
+# Does a path clash with an existing path.
+# A clash occurs if two paths are exactly the same,
+# or a situation will occur where a file and directory
+# of the same will would exist, which will fail on writing out
+# to disk.
+sub _no_path_clashes {
+	my $self = shift;
+	my $path = shift;
+	
+	# Iterate over the file paths
+	foreach ( sort keys %{ $self->{zfiles} } ) {
+		# Are they the same.
+		if ( $path eq $_ ) {
+			return $self->_error( "The file '$path' already exists" );
+		}
+
+		# Does our file already exist as a directory
+		if ( $_ =~ m!^$path/! ) {
+			return $self->_error( "The file '$path' would clash with a directory of the same name" );
+		}
+		
+		# Would the creation of our file involve a directory
+		# that already exists as a file
+		if ( $path =~ m!$_/! ) {
+			return $self->_error( "The file '$path' would create a directory that clash with an existing file '$_'" );
+		}
+	}
+	
+	return 1;
+}
 
 
 

@@ -5,20 +5,25 @@ package Archive::Builder;
 
 use strict;
 use UNIVERSAL 'isa';
-use Archive::Builder::Section;
-use Archive::Builder::File;
-use Archive::Builder::Archive;
-use Archive::Builder::Generators;
+
+# Autoload anything any of our children might need
 use Class::Autouse qw{
 	File::Spec
 	File::Flat
 	Class::Inspector
+	IO::Scalar
 	};
+
+# Load the rest of the classes;
+use Archive::Builder::Section ();
+use Archive::Builder::File ();
+use Archive::Builder::Archive ();
+use Archive::Builder::Generators ();
 
 # Version
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = 0.3;
+	$VERSION = 0.4;
 }
 
 
@@ -36,22 +41,19 @@ sub new {
 		}, $class;
 }
 
-# Generate and cache all files, rather than doing generation on demand
-sub generate {
-        my $self = shift;
-        foreach my $Section ( @{ $self->{sections} } ) {
-                foreach my $File ( $Section->file_list ) {
-                        unless ( defined $File->contents ) {
-                                my $section = $Section->name;
-                                my $path = $File->path;
-                                return $self->_error( "Generation failed for file '$path' in section '$section'" );
-                        }
-                }
-        }
-
-        return 1;
+# Test generate and cache all files.
+sub test {
+	my $self = shift;
+	
+	# Run the test for each section.
+	foreach my $Section ( $self->section_list ) {
+		$Section->test or return undef;
+	}
+	
+	return 1;
 }
 
+# Save all files to disk
 sub save {
 	my $self = shift;
 	my $base = shift || '.';
@@ -72,11 +74,31 @@ sub save {
 	return 1;
 }
 
+# Create a new archive for the Builder
 sub archive {
 	my $self = shift;
 	my $type = shift;
 	return Archive::Builder::Archive->new( $type, $self );
 }
+
+# Create a more shorthand set of data, keying path against content ref
+sub _archive_content {
+	my $self = shift;
+	
+	# Get and merge the _archive_content()s for each section
+	my %tree = ();
+	foreach my $Section ( $self->section_list ) {
+		my $subtree = $Section->_archive_content or return undef;
+		my $path = $Section->path;
+		foreach ( keys %$subtree ) {
+			my $full = File::Spec->catfile( $path, $_ );
+			$tree{$full} = $subtree->{$_};
+		}
+	}
+	
+	return \%tree;
+}
+
 
 
 
@@ -134,7 +156,20 @@ sub section { $_[0]->{sections}->{$_[1]} }
 # Remove a section, by name
 sub remove_section { delete $_[0]->{sections}->{$_[1]} }
 
+# Returns the number of files in the Builder, by totalling 
+# all it's sections
+sub file_count {
+	my $self = shift;
+	my $files = 0;
+	
+	foreach ( $self->section_list ) {
+		$files += $_->file_count;
+	}
 
+	return $files;
+}
+
+	
 
 
 
@@ -349,6 +384,10 @@ Returns a null list C<()> if no sections are defined in the builder.
 Removes a section of a given name from the builder, if it exists. Returns
 C<undef> if no such section exists.
 
+=head2 file_count()
+
+Returns the total number of files in ass sections in the builder
+
 =head2 save( directory )
 
 Generates the file tree for the entire builder and attempts to save it
@@ -451,10 +490,14 @@ their paths. Returns 0 if no files exist within the section.
 Returns a list of all the file objects, sorted by path. Returns a null array
 C<()> if no files exist within the section.
 
-=head2 remove_section( path )
+=head2 remove_file( path )
 
 Removes the file object with the given path from the section. Returns C<undef>
 if no such path exists within the section.
+
+=head2 file_count()
+
+Returns the number of files contained in the section
 
 =head2 save( directory )
 
