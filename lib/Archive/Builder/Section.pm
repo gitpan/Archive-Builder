@@ -10,7 +10,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 	%_PARENT = ();
 }
 
@@ -21,7 +21,7 @@ BEGIN {
 #####################################################################
 # Main interface methods
 
-# A Section's only creation property is it's name
+# A Section's only creation property is its name
 sub new {
 	my $class = shift;
 	my $name = Archive::Builder->_check( 'name', $_[0] ) ? shift
@@ -90,7 +90,7 @@ sub save {
 # Get the parent for the Section, if one exists
 sub Builder { $_PARENT{refaddr $_[0]} }
 
-# Delete this from from it's parent, and remove all our children
+# Delete this from from its parent, and remove all our children
 sub delete {
 	my $self = shift;
 	if ( $self->Builder ) {
@@ -162,7 +162,7 @@ sub add_file {
 	# Add the File
 	$self->{zfiles}->{$File->path} = $File;
 	
-	# Add it's parent reference
+	# Add its parent reference
 	$Archive::Builder::File::_PARENT{ refaddr $File } = $self;
 	
 	1;

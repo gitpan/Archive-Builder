@@ -23,7 +23,7 @@ use Archive::Builder::Generators ();
 # Version
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 	$errstr  = '';
 }
 
@@ -170,6 +170,20 @@ sub remove_section {
 # Returns the number of files in the Builder, by totalling
 # all it's sections
 sub file_count { List::Util::sum map { $_->file_count } $_[0]->section_list or 0 }
+
+# Get a hash of files
+sub files {
+	my $self  = shift;
+	my %files = ();
+	foreach my $Section ( values %{$self->{sections}} ) {
+		foreach my $File ( $Section->file_list ) {
+			my $path = File::Spec->catfile( $Section->path, $File->path );
+			$files{$path} = $File;
+		}
+	}
+
+	\%files;
+}
 
 
 
@@ -415,6 +429,11 @@ C<undef> if no such section exists.
 
 Returns the total number of files in all sections in the builder
 
+=head2 files
+
+Returns a HASH reference containing all of the Achive::Builder::File object
+in the Archive::Builder, keyed by full path name.
+
 =head2 save $directory
 
 Generates the file tree for the entire builder and attempts to save it
@@ -559,7 +578,7 @@ Returns C<undef> if an error during generation or saving occurs.
 
 =head2 delete
 
-The C<delete> method deletes a Section, removing it from it's parent Builder
+The C<delete> method deletes a Section, removing it from its parent Builder
 if applicable, and removing all child Files from the Section.
 
 The C<delete> method always returns true.

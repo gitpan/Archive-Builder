@@ -19,7 +19,7 @@ BEGIN {
 use Archive::Builder ();
 
 # Execute the tests
-use Test::More 'tests' => 69;
+use Test::More 'tests' => 70;
 use Test::ClassAPI;
 
 # Ignore imported functions
@@ -52,6 +52,7 @@ section_list=method
 section=method
 remove_section=method
 file_count=method
+files=method
 errstr=method
 
 [Archive::Builder::Section]

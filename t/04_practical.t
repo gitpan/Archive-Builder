@@ -15,7 +15,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 22;
+use Test::More tests => 36;
 use File::Flat;
 use Archive::Builder;
 
@@ -35,6 +35,28 @@ sub init {
 init();
 
 
+
+
+
+########################################################################
+# Check the Archive::Builder ->files method
+{
+	my $files = $Generator->files;
+	ok( ref $files eq 'HASH', '->files returns a HASH ref' );
+	is( scalar(keys %$files), 6, '->files returns 6 files' );
+	foreach ( qw{
+		one/this
+		one/that
+		one/foo/bar
+		two/another/file
+		two/another/ortwo
+		},
+		'one/x/is a/number.file',
+	) {
+		ok( defined $files->{$_}, "Key '$_' exists" );
+		isa_ok( $files->{$_}, 'Archive::Builder::File' );
+	}
+}
 
 
 
@@ -64,12 +86,12 @@ file_contains( './second/another/ortwo', 'filecontents' );
 $rv = $Generator->save( './third' );
 ok( $rv, 'Archive::Builder ->save returns true' );
 my $files = {
-	'./third/one/this' => 'trivial',
-	'./third/one/that' => 'filecontents',
-	'./third/one/foo/bar' => "Contains\ntwo lines",
+	'./third/one/this'               => 'trivial',
+	'./third/one/that'               => 'filecontents',
+	'./third/one/foo/bar'            => "Contains\ntwo lines",
 	'./third/one/x/is a/number.file' => "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n",
-	'./third/two/another/file' => 'trivial',
-	'./third/two/another/ortwo'  => 'filecontents',
+	'./third/two/another/file'       => 'trivial',
+	'./third/two/another/ortwo'      => 'filecontents',
 	};
 foreach ( keys %$files ) {
 	ok( File::Flat->exists( $_ ), "File '$_' exists" );

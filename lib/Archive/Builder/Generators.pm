@@ -9,7 +9,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 }
 
 
@@ -191,7 +191,7 @@ A typical function will look something like this ( you may cut and paste ).
 
 =head2 Arguments
 
-The function takes as it's first argument the C<Archive::Builder::File>
+The function takes as its first argument the C<Archive::Builder::File>
 object it is part of. The first few lines of the function should look
 Any remaining arguments are passed as recieved 
 from the File object constructor. You should do your own checking on the 

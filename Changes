@@ -1,5 +1,8 @@
 Revision history for Perl extension Archive::Builder
 
+1.04 Thu Oct  7 2004
+	- Added Archive::Builder::files object method
+
 1.03 Sun Sep  5 2004
 	- Fixed dependencies to force upgrade of modules needed for tests
 	  to pass.

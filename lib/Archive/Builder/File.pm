@@ -9,7 +9,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 	%_PARENT = ();
 }
 
@@ -85,7 +85,7 @@ sub executable { $_[0]->{executable} = 1 }
 # Get our parent Section
 sub Section { $_PARENT{ refaddr $_[0] } }
 
-# Delete this from from it's parent
+# Delete this from from its parent
 sub delete {
 	my $self = shift;
 	my $Section = $self->Section or return 1;

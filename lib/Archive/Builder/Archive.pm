@@ -8,7 +8,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 }
 
 
@@ -221,7 +221,7 @@ Archive::Builder::Archive - Archive abstraction handles
 C<Archive::Builder::Archive> objects provide a type neutral handle for
 outputing the various archive file types L<Archive::Builder> objects.
 
-For more information on Archive::Builder objects, see it's POD documentation.
+For more information on Archive::Builder objects, see its POD documentation.
 
 =head1 METHODS
 

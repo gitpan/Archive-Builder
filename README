@@ -139,6 +139,10 @@ Archive::Builder
   file_count
     Returns the total number of files in all sections in the builder
 
+  files
+    Returns a HASH reference containing all of the Achive::Builder::File
+    object in the Archive::Builder, keyed by full path name.
+
   save $directory
     Generates the file tree for the entire builder and attempts to save it
     below a given directory. The passed directory does not have to exist, it
@@ -268,7 +272,7 @@ Archive::Builder::Section
     Returns "undef" if an error during generation or saving occurs.
 
   delete
-    The "delete" method deletes a Section, removing it from it's parent
+    The "delete" method deletes a Section, removing it from its parent
     Builder if applicable, and removing all child Files from the Section.
 
     The "delete" method always returns true.

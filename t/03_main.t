@@ -20,9 +20,9 @@ use Class::Autouse ':devel';
 
 # Load and confirm there are no existing errors
 use Archive::Builder ();
-is( Archive::Builder->errstr, '', '->errstr correctly starts at ""' );
+is( Archive::Builder->errstr,          '', '->errstr correctly starts at ""' );
 is( Archive::Builder::Section->errstr, '', '->errstr correctly starts at ""' );
-is( Archive::Builder::File->errstr, '', '->errstr correctly starts at ""' );
+is( Archive::Builder::File->errstr,    '', '->errstr correctly starts at ""' );
 is( Archive::Builder::Archive->errstr, '', '->errstr correctly starts at ""' );
 
 
