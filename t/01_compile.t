@@ -15,16 +15,14 @@ BEGIN {
 	}
 }
 
-
-
-
-
-# Does everything load?
 use Test::More 'tests' => 6;
+
+# Check their perl version
 BEGIN {
 	ok( $] >= 5.005, 'Your perl is new enough' );
 }
 
+# Load all of the classes
 use_ok( 'Archive::Builder'             );
 use_ok( 'Archive::Builder::Section'    );
 use_ok( 'Archive::Builder::File'       );

@@ -4,18 +4,18 @@ WriteMakefile(
 	'NAME'         => 'Archive::Builder',
 	'VERSION_FROM' => 'lib/Archive/Builder.pm',
 	'PREREQ_PM'    => {
-		# Need by Archive Builder
-		Class::Autouse   => 1.04,
-		File::Spec       => 0.83,
-		File::Flat       => 0.91,
-		Class::Inspector => 1.06,
-		IO::Scalar       => 2.104,
-		IO::Zlib         => 0,
-		List::Util       => 1.11,
+		# Needed by Archive Builder
+		'File::Spec'       => '0.82',
+		'File::Flat'       => '0.92',
+		'Class::Autouse'   => '1.04',
+		'Class::Inspector' => '1.06',
+		'IO::Scalar'       => '2.104',
+		'IO::Zlib'         => '0',
+		'List::Util'       => '1.11',
 
 		# Needed by tests
-		Test::More       => 0,
-		Class::Handle    => 0,
+		'Test::More'       => '0.47',
+		'Test::ClassAPI'   => '1.02',
 	},
 	($] >= 5.005) ? (
 		'AUTHOR'   => 'Adam Kennedy (cpan@ali.as)',

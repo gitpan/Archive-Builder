@@ -15,16 +15,10 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 301;
+use Test::More tests => 300;
 use Class::Autouse ':devel';
-use Class::Handle ();
 
-# Check the perl version
-BEGIN {
-	$| = 1;
-	ok( $] >= 5.005, "Your perl is new enough" );
-}
-
+# Load and confirm there are no existing errors
 use Archive::Builder ();
 is( Archive::Builder->errstr, '', '->errstr correctly starts at ""' );
 is( Archive::Builder::Section->errstr, '', '->errstr correctly starts at ""' );
