@@ -1,5 +1,8 @@
 Revision history for Perl extension Archive::Builder
 
+0.7  Tue Jul  1 12:40:12 2003
+	- Prevent generated binary files from being broken
+
 0.6  Fri Jun 27 19:41:43 2003
 	- Made File->save actually set executable if needed
 

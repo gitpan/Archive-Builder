@@ -9,7 +9,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.6';
+	$VERSION = '0.7';
 	%_PARENT = ();
 }
 
@@ -145,8 +145,11 @@ sub _contents {
 		: &{ $generator }( $self );
 	return undef unless isa( $result, 'SCALAR' );
 
-	# Clean up newlines before returning
-	$$result =~ s/(?:\015\012|\015|\012)/\n/g;
+	# Clean up newlines in text files
+	if ( index($$result, "\000") == -1 ) {
+		$$result =~ s/(?:\015\012|\015|\012)/\n/g;
+	}
+	
 	return $result;
 }
 
