@@ -3,7 +3,7 @@ NAME
 
 SYNOPSIS
       # Make a builder with one section, and some files
-      my $Builder = Archive::Builder->new();
+      my $Builder = Archive::Builder->new;
       my $Section = $Builder->new_section( 'html' );
       $Section->add_file( 'one.html', 'string', qq~<html><body>
             Hello World!
@@ -90,11 +90,11 @@ METHODS
     from the "errstr()" method called on any object.
 
 Archive::Builder
-  new()
+  new
     The "new()" constructor takes no arguments, and returns a new
     "Archive::Builder" object.
 
-  add_section( Archive::Builder::Section )
+  add_section $Archive::Builder::Section
     The "add_section" method takes as an argument an
     "Archive::Builder::Section" object, and adds it to the builder.
 
@@ -102,34 +102,34 @@ Archive::Builder
     error, for example if another Section with the same name has already
     been added.
 
-  new_section( name )
+  new_section $name
     Creates a new "Archive::Builder::Section" object with the name provided,
     and immediately adds it to the builder.
 
     Returns the new Section object on success. Returns undef on error.
 
-  section( name )
+  section $name
     Finds and returns a "Archive::Builder::Section" object with the provided
     name within the builder and returns it. Returns undef if passed name
     does not exist.
 
-  sections()
+  sections
     Returns a hash containing all the sections, indexed by name. Returns 0
     if no sections have been created in the builder.
 
-  section_list()
+  section_list
     Returns all the sections in the builder as a list, sorted by section
     name. Returns a null list "()" if no sections are defined in the
     builder.
 
-  remove_section( name )
+  remove_section $name
     Removes a section of a given name from the builder, if it exists.
     Returns "undef" if no such section exists.
 
-  file_count()
+  file_count
     Returns the total number of files in all sections in the builder
 
-  save( directory )
+  save $directory
     Generates the file tree for the entire builder and attempts to save it
     below a given directory. The passed directory does not have to exist, it
     will be created on demand.
@@ -137,21 +137,21 @@ Archive::Builder
     Returns true if all files were generated and saved successfully. Returns
     "undef" if an error occurs, or the directory is bad.
 
-  delete()
+  delete
     Because of the structure used to support the parent methods, you should
     probably explicitly delete Builds when you are done with them to avoid
     memory leaks due to circular dependencies.
 
     The "delete" method always returns true.
 
-  reset()
+  reset
     If the contents of any of the files in the Archive::Builder has been
     generated ( and thus cached ), the "reset" method will remove any cached
     content from the files, forcing them to be generated again.
 
     The "reset" method always returns true.
 
-  archive( type )
+  archive $type
     Creates a handle to an archive of a specified type related to the
     builder. Types can only be used if the modules that support them are
     installed. The following types are supported, and their prerequisites
@@ -174,7 +174,7 @@ Archive::Builder
     Archive::Builder::Archive section below.
 
 Archive::Builder::Section
-  new( name )
+  new name
     Creates a new "Archive::Builder::Section" object of a given name.
     Although meant to be used in an "Archive::Builder" object, they can
     still be used effectively standalone, as they have both "save" and
@@ -188,23 +188,23 @@ Archive::Builder::Section
     will be saved to different locations, but should still be passed around
     as a single entity.
 
-  name()
+  name
     Returns the name of the Section.
 
-  path( [ path ] )
+  path [ path ]
     When used within the context of a Builder object, and set to the same
     value as the section's name by default, this method returns the path
     below the Builder root that will be used, or if passed a relative path,
     will set the path to a new value. You are not likely to need this, as in
     general, the same value will suffice for both the name and path.
 
-  Builder()
+  Builder
     If the Section has been added to a Builder, the "Builder" method will
     return it.
 
     Returns a "Archive::Builder" object if added, or "undef" if not.
 
-  add_file( Archive::Builder::File )
+  add_file $Archive::Builder::File
     Adds an existing "Archive::Builder::File" object to the section.
 
     Returns true on success. Returns "undef" on error, or if the path of the
@@ -222,7 +222,7 @@ Archive::Builder::Section
     rather than wait until we are halfway through writing the files to disk
     to find out.
 
-  new_file( path, generator [, arguments ] )
+  new_file $path, $generator [, @arguments ]
     Creates a new file, using the arguments provided, and immediately adds
     it to the current section. See the "new" method for
     Archive::Builder::File below for more details on the arguments.
@@ -231,52 +231,52 @@ Archive::Builder::Section
     "undef" if an error occurs during either the creation or addition of the
     file.
 
-  file( path )
+  file $path
     Finds the "Archive::Builder::File" object with the given path and
     returns it. Returns undef if no such file exists.
 
-  files()
+  files
     Returns a reference to a hash containing all of the files objects, keyed
     by their paths. Returns 0 if no files exist within the section.
 
-  file_list()
+  file_list
     Returns a list of all the file objects, sorted by path. Returns a null
     array "()" if no files exist within the section.
 
-  remove_file( path )
+  remove_file $path
     Removes the file object with the given path from the section. Returns
     "undef" if no such path exists within the section.
 
-  file_count()
+  file_count
     Returns the number of files contained in the section
 
-  save( directory )
+  save $directory
     The "save()" method works the same as the "Archive::Builder" "save"
     method, generating the files and saving them below the directory
     provided. Again, the directory is created on demand.
 
     Returns "undef" if an error during generation or saving occurs.
 
-  delete()
+  delete
     The "delete" method deletes a Section, removing it from it's parent
     Builder if applicable, and removing all child Files from the Section.
 
     The "delete" method always returns true.
 
-  reset()
+  reset
     If the contents of any of the files in the Section has been generated (
     and thus cached ), the "reset" method will remove any cached content
     from the files, forcing them to be generated again.
 
     The "reset" method always returns true.
 
-  archive( type )
+  archive $type
     As for the "Archive::Builder" "acrhive" method, creates an archive
     handle of the given type. Returns a "Archive::Builder::Archive" object
     on success. Returns "undef" on error.
 
 Archive::Builder::File
-  new( path, generator [, arguments ] )
+  new $path, $generator [, @arguments ]
     Creates a new "Archive::Builder::File" object and returns it. This
     method is not normally used directly, with the
     "Archive::Builder::Section" method "new_file()" being more typically
@@ -308,52 +308,52 @@ Archive::Builder::File
     the object for the generation, you are recommended to Clone it before
     passing.
 
-  path()
+  path
     Returns the path for the file. This cannot be changed after creation.
 
-  generator()
+  generator
     Returns the generator for the file. This cannot be changed after
     creation
 
-  arguments()
+  arguments
     Returns a reference to an array containing the arguments to be passed to
     the generator, or 0 if there are no arguments. The list of arguments
     cannot be changed after creation ( although of course objects passed can
     be changed outside the scope of this API ).
 
-  binary()
+  binary
     This method will analyse the file contents ( generating if needed ) to
     determine if the file is a binary file. While not 100% accurate, it
     should be good enough for most situations.
 
-  executable()
+  executable
     Calling this method will add a hint to the file that it should be
     considered as an executable file, should the need arise. This is most
     likely used in situations where permissions need to be set after
     generation.
 
-  Section()
+  Section
     If added to a Section, the "Section" method returns the Section to which
     we have been added.
 
     Returns a Archive::Builder::Section object if the File is added to one,
     or "undef" if not.
 
-  contents()
+  contents
     Generates and returns the contents of the file as a scalar reference.
     Returns "undef" if a generation error occurs.
 
-  save( filename )
+  save $filename
     Bypassing the normal generation process and path name, the "save" method
     allows you to generate a single file object and save it to a specific
     filename. Any directories need to write the file will be created on
     demand. Returns "undef" if a generation permissions error occurs.
 
-  delete()
+  delete
     If added to a Section, the "delete" method allows us to remove and
     delete the file from the parent Section. Always returns true.
 
-  reset()
+  reset
     If the file has been generated ( and thus cached ), the "reset" method
     will remove any cached content from the files, forcing it to be
     generated again.

@@ -1,0 +1,20 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Archive-Builder
+version:      0.9
+version_from: lib/Archive/Builder.pm
+installdirs:  site
+requires:
+    Class::Autouse:                1.01
+    Class::Handle:                 0
+    Class::Inspector:              1.01
+    File::Flat:                    0.8
+    File::Spec:                    0.83
+    IO::Scalar:                    2.104
+    IO::Zlib:                      0
+    List::Util:                    0
+    Scalar::Util:                  1.11
+    Test::More:                    0
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.16

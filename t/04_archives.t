@@ -111,7 +111,7 @@ sub test_tgz {
 	# Does the string match the expected value
 	ok( isa( $scalar, 'SCALAR'), '->generate returns a scalar ref' );
 	ok( $$scalar =~ /^(?:\037\213|\037\235)/, 'Contents appears to be gzipped' );
-	ok( length $$scalar > 180, 'Length appears to be long enough to contain everything' );
+	ok( length $$scalar > 160, 'Length appears to be long enough to contain everything' );
 
 	# Save the file
 	ok( $Archive->save( 'first' ), '->save returns true' );
@@ -130,7 +130,7 @@ sub test_tar_gz {
         # Does the string match the expected value
         ok( isa( $scalar, 'SCALAR'), '->generate returns a scalar ref' );
         ok( $$scalar =~ /^(?:\037\213|\037\235)/, 'Contents appears to be gzipped' );
-	ok( length $$scalar > 180, 'Length appears to be long enough to contain everything' );
+	ok( length $$scalar > 160, 'Length appears to be long enough to contain everything' );
 
         # Save the file
         ok( $Archive->save( 'first' ), '->save returns true' );

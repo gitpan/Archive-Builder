@@ -1,5 +1,13 @@
 Revision history for Perl extension Archive::Builder
 
+0.9  Tue Dec  2 2003
+	- Some zipping code has gotten more efficient.
+	  Reduced size of expected size in tests to match.
+	- Did some minor code refactoring to make the memory load
+	  size a little smaller. Saved a couple of K
+	- Allow the special case of Section path '.'
+	- Did some cleaning of the POD to match new prefered style.
+
 0.8  Thu Jul 17 15:20:02 2003
 	- Added ->reset method to flush generated file contents, 
 	  so they can be generated again if needed.

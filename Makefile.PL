@@ -5,10 +5,10 @@ WriteMakefile(
 	'VERSION_FROM' => 'lib/Archive/Builder.pm',
 	'PREREQ_PM'    => {
 		# Need by Archive Builder
-		Class::Autouse   => 0.7,
+		Class::Autouse   => 1.01,
 		File::Spec       => 0.83,
-		File::Flat       => 0.6,
-		Class::Inspector => 1,
+		File::Flat       => 0.8,
+		Class::Inspector => 1.01,
 		IO::Scalar       => 2.104,
 		IO::Zlib         => 0,
 		Scalar::Util     => 1.11,
@@ -20,6 +20,6 @@ WriteMakefile(
 	},
 	($] >= 5.005) ? (
 		'AUTHOR'   => 'Adam Kennedy (cpan@ali.as)',
-		'ABSTRACT' => 'File tree generation and archiving framework',
+		'ABSTRACT' => 'In memory file tree and archive generation framework',
 	) : (),
 );

@@ -16,41 +16,33 @@ use Archive::Builder ();
 
 # Recieves as an argument the exact string the file should contain
 sub string {
-	my $File = isa( $_[0], 'Archive::Builder::File' )
-		? shift : return undef;
+	my $File = isa( $_[0], 'Archive::Builder::File' ) ? shift : return undef;
 	my $string = shift;
-	return $string if isa( $string, 'SCALAR' );
-	return undef if ref $string;
-	return \$string if defined $string;
-	return undef;
-
-	# Just returns the string
-	return $string;	
+	isa( $string, 'SCALAR' ) ? $string
+		: ref $string ? undef
+		: defined $string ? \$string
+		: undef;
 };
 
 # Recieves as an argument the name of a file
 sub file {
-	my $File = isa( $_[0], 'Archive::Builder::File' )
-		? shift : return undef;
-
-	# Get and check the file name
+	my $File = isa( $_[0], 'Archive::Builder::File' ) ? shift : return undef;
 	my $filename = -f $_[0] ? shift : return undef;
-	
+
 	# Slurp in the file
-	return File::Flat->slurp( $filename )
-		|| $File->_error( "Failed to load file '$filename'" );
+	File::Flat->slurp( $filename )
+		or $File->_error( "Failed to load file '$filename'" );
 }
 
 # Takes any object derived from class IO::Handle, reads it in
 # and returns it. An optional second argument is the number of bytes 
 # to read in at a time ( the chunk size ). Default is 8192 ( 8 kilobytes )
 sub handle {
-        my $File = isa( $_[0], 'Archive::Builder::File' )
-                ? shift : return undef;
+        my $File = isa( $_[0], 'Archive::Builder::File' ) ? shift : return undef;
 
 	# Get and check the handle
-	my $handle = isa( $_[0], 'IO::Handle' )
-		? shift : return $File->_error( 'Was not passed an IO::Handle argument' );
+	my $handle = isa( $_[0], 'IO::Handle' ) ? shift
+		: return $File->_error( 'Was not passed an IO::Handle argument' );
 	my $chunk_size = shift || (8 * 1024);
 
 	# Read in everything
@@ -60,7 +52,7 @@ sub handle {
 		$contents .= $buffer;
 	}
 
-	return defined $rv ? \$contents
+	defined $rv ? \$contents
 		: $File->_error( 'Error while reading from handle' );
 }	
 
@@ -76,8 +68,7 @@ sub handle {
 # The second argument is the file name withing the Template object.
 # The third argument is the hash reference to pass to the template.
 sub template {
-	my $File = isa( $_[0], 'Archive::Builder::File' )
-		? shift : return undef;
+	my $File = isa( $_[0], 'Archive::Builder::File' ) ? shift : return undef;
 
 	# Before beginning, test to see if Template toolkit is installed
 	unless ( Class::Autouse->load( 'Template' ) ) {
@@ -95,9 +86,8 @@ sub template {
 	my $output = '';
 	
 	# Process the template
-	return $Template->process( $toparse, $args, \$output )
-		? \$output
-		: $File->_error( "Template Error: " . $Template->error() );
+	$Template->process( $toparse, $args, \$output ) ? \$output
+		: $File->_error( "Template Error: " . $Template->error );
 }
 
 1;
@@ -168,7 +158,7 @@ using the same values as you would for the normal C<Template> C<process>
 method.
 
 And error will be caught and passed on, and becomes available from
-C<$Archive::Builder::errstr> or one of the C<errstr()> methods.
+C<$Archive::Builder::errstr> or one of the C<errstr> methods.
 
 =head1 WRITING GENERATORS
 
@@ -258,7 +248,7 @@ L<Archive::Tar>, L<Archive::Zip>.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2002 Adam Kennedy. All rights reserved.
+Copyright (c) 2002-2003 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

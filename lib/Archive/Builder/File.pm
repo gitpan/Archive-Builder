@@ -9,7 +9,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.8';
+	$VERSION = '0.9';
 	%_PARENT = ();
 }
 
@@ -22,7 +22,7 @@ BEGIN {
 
 sub new {
 	my $class = shift;
-	$class->_clear();
+	$class->_clear;
 
 	# Get and check the path
 	my $path = Archive::Builder->_check( 'relative path', $_[0] ) ? shift
@@ -34,13 +34,11 @@ sub new {
 			. Archive::Builder->errstr );
 
 	# Create the File object
-	my $self = bless {
+	bless {
 		path => $path,
 		generator => $generator,
-		arguments => scalar @_ ? [ @_ ] : 0,
+		arguments => @_ ? [ @_ ] : 0,
 		}, $class;
-
-	return $self;
 }
 
 # Accessor methods
@@ -64,13 +62,13 @@ sub save {
 	# Write the file
 	File::Flat->write( $filename, $contents )
 		or return $self->_error( "Error writing to '$filename': $!" );
-	
+
 	# If it is executable, set the mode
 	if ( $self->{executable} ) {
 		chmod 0755, $filename;
 	}
 
-	return 1;
+	1;
 }
 
 # Is the file binary. Worked out by examining the content for the null byte,
@@ -78,7 +76,7 @@ sub save {
 sub binary {
 	my $self = shift;
 	my $contents = $self->contents or return undef;
-	return index($$contents, "\000") == -1 ? '' : 1;
+	! index($$contents, "\000") == -1;
 }
 
 # Flag a File as being executable
@@ -91,11 +89,11 @@ sub Section { $_PARENT{ refaddr $_[0] } }
 sub delete {
 	my $self = shift;
 	my $Section = $self->Section or return 1;
-	
+
 	# Remove from our parent
 	$Section->remove_file( $self->path );
-	
-	return 1;
+
+	1;
 }	
 
 # If the content has been generated, remove it so it will
@@ -114,13 +112,13 @@ sub reset { delete $_[0]->{contents}; 1 }
 sub contents {
 	my $self = shift;
 	unless ( exists $self->{contents} ) {
-		my $contents = $self->_contents();
+		my $contents = $self->_contents;
 		unless ( defined $contents ) {
 			return $self->_error( 'Error while generating contents: ' . $self->errstr );
 		}
 		$self->{contents} = $contents;
 	}
-	return $self->{contents};
+	$self->{contents};
 }
 
 # Actually generate the contents
@@ -148,7 +146,7 @@ sub _contents {
 		$$result =~ s/(?:\015\012|\015|\012)/\n/g;
 	}
 	
-	return $result;
+	$result;
 }
 
 

@@ -8,7 +8,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.8';
+	$VERSION = '0.9';
 }
 
 
@@ -25,11 +25,11 @@ BEGIN {
 		tgz      => [ 'Archive::Tar', 'Compress::Zlib' ],
 		'tar.gz' => [ 'Archive::Tar', 'Compress::Zlib' ],
 		};
-	
+
 	# Which types are we able to create
 	foreach my $type ( keys %$dependencies ) {
-		$support->{$type} = scalar grep { ! Class::Inspector->installed( $_ ) } 
-			@{ $dependencies->{$type} } ? 0 : 1;
+		$support->{$type} = grep { ! Class::Inspector->installed( $_ ) } 
+			@{$dependencies->{$type}} ? 0 : 1;
 	}
 }
 
@@ -38,8 +38,7 @@ BEGIN {
 
 # Which types are supported
 sub types {
-	my $class = shift;
-	return grep { $support->{$_} } sort keys %$support;
+	grep { $support->{$_} } sort keys %$support;
 }
 
 
@@ -51,29 +50,29 @@ sub new {
 	my $class = shift;
 	my $type = exists $support->{$_[0]} ? shift : return undef;
 	my $Source = can( $_[0], '_archive_content' ) ? shift : return undef;
-	
+
 	# Can we use the type?
 	unless ( $support->{$type} ) {
 		my $modules = join ', ', @{ $dependencies->{$type} };
 		return $class->_error( "$type support requires that the modules $modules are installed" );
 	}
-	
+
 	# Make sure there is at least one file
 	unless ( $Source->file_count > 0 ) {
 		return $class->_error( "Your Source does not contain any files" );
 	}
-	
+
 	# Get the generated files
-	my $files = $Source->_archive_content();
+	my $files = $Source->_archive_content;
 	unless ( $files ) {
 		return $class->_error( "Error generating content to create archive" );
 	}
-	
+
 	# Create the object
-	return bless {
+	bless {
 		type => $type,
 		files => $files,
-		}, $class;			
+		}, $class;
 }
 
 # Get the type
@@ -82,19 +81,18 @@ sub type { $_[0]->{type} }
 # Get the generated file as a scalar ref
 sub generate {
 	my $self = shift;
-	return $self->{generated} || 
-	($self->{generated} = $self->_generate);
+	$self->{generated} || ($self->{generated} = $self->_generate);
 }
 
 sub _generate {
 	my $self = shift;
-	
+
 	# Load the required modules
 	my @modules = @{ $dependencies->{ $self->{type} } };
 	foreach ( @modules ) {
 		Class::Autouse->load( $_ );
 	}
-	
+
 	if ( $self->{type} eq 'zip' ) {
 		return $self->_zip;
 	} elsif ( $self->{type} eq 'tar' ) {
@@ -112,7 +110,7 @@ sub _generate {
 sub save {
 	my $self = shift;
 	my $filename = shift;
-	
+
 	# Add the extension to the filename if needed
 	my $type = quotemeta $self->{type};
 	unless ( $filename =~ /\.$type$/ ) {
@@ -123,19 +121,19 @@ sub save {
 	unless ( File::Flat->canWrite( $filename ) ) {
 		return $self->_error( "Insufficient permissions to write to '$filename'" );
 	}
-	
+
 	# Get the generated archive
 	my $contents = $self->generate;
 	unless ( $contents ) {
 		return $self->_error( "Error generating $self->{type} archive" );
 	}
-	
+
 	# Write the file
 	unless ( File::Flat->write( $filename, $contents ) ) {
 		return $self->_error( "Error writing $self->{type} archive '$filename' to disk" );
 	}
-	
-	return 1;
+
+	1;
 }
 
 
@@ -150,58 +148,53 @@ sub save {
 
 sub _zip {
 	my $self = shift;
-	
+
 	# Create the new, empty archive
-	my $Archive = Archive::Zip->new();
-	
+	my $Archive = Archive::Zip->new;
+
 	# Add each file to it
 	foreach my $path ( keys %{ $self->{files} } ) {
 		my $member = $Archive->addString( ${ $self->{files}->{$path} }, $path );
 		$member->desiredCompressionMethod( Archive::Zip::COMPRESSION_DEFLATED() );
 	}
-	
+
 	# Now stringify the Archive and return it
-	my $handle = IO::Scalar->new();
-	return $Archive->writeToFileHandle( $handle ) == Archive::Zip::AZ_OK()
-		? $handle->sref : undef;
+	my $handle = IO::Scalar->new;
+	$Archive->writeToFileHandle( $handle ) == Archive::Zip::AZ_OK() ? $handle->sref : undef;
 }
 
 sub _tar {
 	my $self = shift;
-	
+
 	# Create the empty tar object
-	my $Archive = Archive::Tar->new();
+	my $Archive = Archive::Tar->new;
 	unless ( $Archive ) {
 		return $self->_error( 'Error creating tar object' );
 	}
-	
+
 	# Add each file to it
 	foreach my $path ( keys %{ $self->{files} } ) {
 		$Archive->add_data( $path, ${ $self->{files}->{$path} } );
 	}
-	
+
 	# Get the output
-	my $string = $Archive->write();
-	return $string ? \$string : undef;
+	my $string = $Archive->write;
+	$string ? \$string : undef;
 }
 
 sub _tar_gz {
 	my $self = shift;
-	
+
 	# Get the normal tar
-	my $tar = $self->_tar() or return undef;
-	
+	my $tar = $self->_tar or return undef;
+
 	# Compress it
 	my $compressed = Compress::Zlib::memGzip( $$tar );
-	return $compressed ? \$compressed : undef;
+	$compressed ? \$compressed : undef;
 }
 
 # Exactly the same as _tar_gz
-sub _tgz {
-	my $self = shift;
-	return $self->_tar_gz;	
-}
-
+sub _tgz { shift->_tar_gz }
 
 
 
@@ -211,8 +204,8 @@ sub _tgz {
 # Utility methods
 
 # Pass through error
-sub errstr { return Archive::Builder->errstr }
-sub _error { shift; return Archive::Builder->_error( @_ ) }
+sub errstr { Archive::Builder->errstr }
+sub _error { shift; Archive::Builder->_error(@_) }
 sub _clear { Archive::Builder->_clear }
 
 1;
@@ -232,7 +225,7 @@ For more information on Archive::Builder objects, see it's POD documentation.
 
 =head1 METHODS
 
-=head2 types()
+=head2 types
 
 When loaded, Archive::Builder::Archive examines your system to determine which
 archive types it is capable of creating, based on dependencies.
@@ -246,11 +239,11 @@ Although obtained via the Archive::Builder and Archive::Builder::Section
 C<archive> methods, archives can be created directly, by passing them a valid
 type and either an C<Archive::Builder> or C<Archive::Builder::Section> object.
 
-=head2 type()
+=head2 type
 
 Returns the type of an C<Archive::Builder::Archive> object.
 
-=head2 generate()
+=head2 generate
 
 Generates and returns the actual archive object, with will be an 
 L<Archive::Zip>, L<Archive::Tar>, or whatever, depending on the type.

@@ -10,7 +10,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.8';
+	$VERSION = '0.9';
 	%_PARENT = ();
 }
 
@@ -28,13 +28,11 @@ sub new {
 		: return $class->_error( 'Invalid section name format' );
 
 	# Create the object
-	my $self = bless {
+	bless {
 		name   => $name,
 		path   => $name,
 		zfiles => {},
 		}, $class;
-
-	return $self;
 }
 
 # Get the name
@@ -43,13 +41,13 @@ sub name { $_[0]->{name} }
 # Get or set the path
 sub path {
 	my $self = shift;
-	return $self->{path} unless scalar @_;
+	return $self->{path} unless @_;
 
 	# Set the path
-	my $path = Archive::Builder->_check( 'relative path', $_[0] ) ? shift
-		: return undef;
+	my $path = Archive::Builder->_check( 'relative path', $_[0] )
+		? shift : return undef;
 	$self->{path} = $path;
-	return 1;
+	1;
 }
 
 # Test generate and cache all files
@@ -65,7 +63,7 @@ sub test {
 		}
 	}
 
-	return 1;
+	1;
 }
 
 # Save the entire section
@@ -86,7 +84,7 @@ sub save {
 		}
 	}
 
-	return 1;
+	1;
 }
 
 # Get the parent for the Section, if one exists
@@ -106,7 +104,7 @@ sub delete {
 	}
 	$self->{zfiles} = {};
 
-	return 1;
+	1;
 }	
 
 # If any files have been generated, flush the content cache
@@ -128,7 +126,7 @@ sub _archive_content {
 		$tree{$File->path} = $contents;
 	}
 
-	return \%tree;
+	\%tree;
 }
 
 
@@ -147,7 +145,7 @@ sub new_file {
 		or return undef;
 
 	# Add the file
-	return $self->add_file( $File ) ? $File : undef;
+	$self->add_file( $File ) ? $File : undef;
 }
 
 # Add a new file
@@ -167,7 +165,7 @@ sub add_file {
 	# Add it's parent reference
 	$Archive::Builder::File::_PARENT{ refaddr $File } = $self;
 	
-	return 1;
+	1;
 }
 
 # Get a copy of the hash of files
@@ -176,7 +174,7 @@ sub files { %{ $_[0]->{zfiles} } ? { %{ $_[0]->{zfiles} } } : 0 }
 # Return the files as a List, sorted by file name
 sub file_list {
 	my $files = $_[0]->{zfiles};
-	return map { $files->{$_} } sort keys %$files;
+	map { $files->{$_} } sort keys %$files;
 }
 
 # Get a single file by name
@@ -194,7 +192,7 @@ sub remove_file {
 	# Remove the parent link
 	delete $Archive::Builder::File::_PARENT{ refaddr $File };
 
-	return 1;
+	1;
 }
 
 # Get a count of the number of files
@@ -235,7 +233,7 @@ sub _no_path_clashes {
 		}
 	}
 
-	return 1;
+	1;
 }
 
 

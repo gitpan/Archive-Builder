@@ -25,7 +25,7 @@ use Archive::Builder::Generators ();
 # Version
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.8';
+	$VERSION = '0.9';
 	$errstr  = '';
 }
 
@@ -60,7 +60,7 @@ sub save {
 		}
 	}
 
-	return 1;
+	1;
 }
 
 # Explicitly delete Archive.
@@ -90,7 +90,7 @@ sub _archive_content {
 		}
 	}
 
-	return \%tree;
+	\%tree;
 }
 
 
@@ -108,7 +108,7 @@ sub new_section {
 	my $Section = Archive::Builder::Section->new( @_ )
 		or return undef;
 
-	$self->add_section($Section) and return $Section;
+	$self->add_section($Section) and $Section;
 }
 
 # Add an existing section
@@ -129,7 +129,7 @@ sub add_section {
 	# Add it's parent reference
 	$Archive::Builder::Section::_PARENT{ refaddr $Section } = $self;
 	
-	return 1;
+	1;
 }
 
 # Get the hash of sections
@@ -138,7 +138,7 @@ sub sections { %{$_[0]->{sections}} ? { %{$_[0]->{sections}} } : 0 }
 # Get the sections as a list
 sub section_list {
 	my $sections = $_[0]->{sections};
-	return map { $sections->{$_} } sort keys %$sections;
+	map { $sections->{$_} } sort keys %$sections;
 }
 
 # Get a section by name
@@ -156,7 +156,7 @@ sub remove_section {
 	# Remove the parent link
 	delete $Archive::Builder::Section::_PARENT{ refaddr $Section };
 
-	return 1;
+	1;
 }
 
 # Returns the number of files in the Builder, by totalling
@@ -193,6 +193,11 @@ sub _check {
 			return '' if $string =~ /\\/;
 		}
 
+		# We allow one specific exception to the upwards rules.
+		# That is in the case where we want to put the content from
+		# section into the root of the Builder tree.
+		return $string if $string eq '.';
+
 		# Does the path contain upwards stuff?
 		return '' unless File::Spec->no_upwards( $string );
 		return '' if $string =~ /\.\./;
@@ -226,7 +231,7 @@ sub _check {
 		return 1;
 	}
 
-	return undef;
+	undef;
 }
 
 # Error handling
@@ -247,7 +252,7 @@ Archive::Builder - File generation and archiving framework
 =head1 SYNOPSIS
 
   # Make a builder with one section, and some files
-  my $Builder = Archive::Builder->new();
+  my $Builder = Archive::Builder->new;
   my $Section = $Builder->new_section( 'html' );
   $Section->add_file( 'one.html', 'string', qq~<html><body>
   	Hello World!
@@ -338,12 +343,12 @@ C<errstr()> method called on any object.
 
 =head1 Archive::Builder
 
-=head2 new()
+=head2 new
 
 The C<new()> constructor takes no arguments, and returns a new
 C<Archive::Builder> object.
 
-=head2 add_section( Archive::Builder::Section )
+=head2 add_section $Archive::Builder::Section
 
 The C<add_section> method takes as an argument an C<Archive::Builder::Section>
 object, and adds it to the builder.
@@ -351,38 +356,38 @@ object, and adds it to the builder.
 Returns true if the section is added successfully. Returns undef on error, for
 example if another Section with the same name has already been added.
 
-=head2 new_section( name )
+=head2 new_section $name
 
 Creates a new C<Archive::Builder::Section> object with the name provided, and
 immediately adds it to the builder.
 
 Returns the new Section object on success. Returns undef on error.
 
-=head2 section( name )
+=head2 section $name
 
 Finds and returns a C<Archive::Builder::Section> object with the provided name
 within the builder and returns it. Returns undef if passed name does not exist.
 
-=head2 sections()
+=head2 sections
 
 Returns a hash containing all the sections, indexed by name. Returns C<0> if no
 sections have been created in the builder.
 
-=head2 section_list()
+=head2 section_list
 
 Returns all the sections in the builder as a list, sorted by section name.
 Returns a null list C<()> if no sections are defined in the builder.
 
-=head2 remove_section( name )
+=head2 remove_section $name
 
 Removes a section of a given name from the builder, if it exists. Returns
 C<undef> if no such section exists.
 
-=head2 file_count()
+=head2 file_count
 
 Returns the total number of files in all sections in the builder
 
-=head2 save( directory )
+=head2 save $directory
 
 Generates the file tree for the entire builder and attempts to save it
 below a given directory. The passed directory does not have to exist, it
@@ -391,7 +396,7 @@ will be created on demand.
 Returns true if all files were generated and saved successfully. Returns
 C<undef> if an error occurs, or the directory is bad.
 
-=head2 delete()
+=head2 delete
 
 Because of the structure used to support the parent methods, you should
 probably explicitly delete Builds when you are done with them to avoid
@@ -399,7 +404,7 @@ memory leaks due to circular dependencies.
 
 The C<delete> method always returns true.
 
-=head2 reset()
+=head2 reset
 
 If the contents of any of the files in the Archive::Builder has been
 generated ( and thus cached ), the C<reset> method will remove any cached
@@ -407,7 +412,7 @@ content from the files, forcing them to be generated again.
 
 The C<reset> method always returns true.
 
-=head2 archive( type )
+=head2 archive $type
 
 Creates a handle to an archive of a specified type related to the builder.
 Types can only be used if the modules that support them are installed.
@@ -431,7 +436,7 @@ section below.
 
 =head1 Archive::Builder::Section
 
-=head2 new( name )
+=head2 new name
 
 Creates a new C<Archive::Builder::Section> object of a given name. Although
 meant to be used in an C<Archive::Builder> object, they can still be used
@@ -445,11 +450,11 @@ can be defined containing multiple sections, where the sections will be
 saved to different locations, but should still be passed around as a
 single entity.
 
-=head2 name()
+=head2 name
 
 Returns the name of the Section.
 
-=head2 path( [ path ] )
+=head2 path [ path ]
 
 When used within the context of a Builder object, and set to the same value
 as the section's name by default, this method returns the path below the
@@ -457,14 +462,14 @@ Builder root that will be used, or if passed a relative path, will set the
 path to a new value. You are not likely to need this, as in general, the
 same value will suffice for both the name and path.
 
-=head2 Builder()
+=head2 Builder
 
 If the Section has been added to a Builder, the C<Builder> method will return
 it.
 
 Returns a C<Archive::Builder> object if added, or C<undef> if not.
 
-=head2 add_file( Archive::Builder::File )
+=head2 add_file $Archive::Builder::File
 
 Adds an existing C<Archive::Builder::File> object to the section.
 
@@ -483,7 +488,7 @@ file first/second ( or vica versa ). This issue is caught for you now,
 rather than wait until we are halfway through writing the files to disk
 to find out.
 
-=head2 new_file( path, generator [, arguments ] )
+=head2 new_file $path, $generator [, @arguments ]
 
 Creates a new file, using the arguments provided, and immediately adds it
 to the current section. See the C<new> method for Archive::Builder::File
@@ -492,31 +497,31 @@ below for more details on the arguments.
 Returns true if the file is created and added successfuly. Returns C<undef>
 if an error occurs during either the creation or addition of the file.
 
-=head2 file( path )
+=head2 file $path
 
 Finds the C<Archive::Builder::File> object with the given path and returns
 it. Returns undef if no such file exists.
 
-=head2 files()
+=head2 files
 
 Returns a reference to a hash containing all of the files objects, keyed by
 their paths. Returns 0 if no files exist within the section.
 
-=head2 file_list()
+=head2 file_list
 
 Returns a list of all the file objects, sorted by path. Returns a null array
 C<()> if no files exist within the section.
 
-=head2 remove_file( path )
+=head2 remove_file $path
 
 Removes the file object with the given path from the section. Returns C<undef>
 if no such path exists within the section.
 
-=head2 file_count()
+=head2 file_count
 
 Returns the number of files contained in the section
 
-=head2 save( directory )
+=head2 save $directory
 
 The C<save()> method works the same as the C<Archive::Builder> C<save> method,
 generating the files and saving them below the directory provided. Again, the
@@ -524,14 +529,14 @@ directory is created on demand.
 
 Returns C<undef> if an error during generation or saving occurs.
 
-=head2 delete()
+=head2 delete
 
 The C<delete> method deletes a Section, removing it from it's parent Builder
 if applicable, and removing all child Files from the Section.
 
 The C<delete> method always returns true.
 
-=head2 reset()
+=head2 reset
 
 If the contents of any of the files in the Section has been generated 
 ( and thus cached ), the C<reset> method will remove any cached
@@ -539,7 +544,7 @@ content from the files, forcing them to be generated again.
 
 The C<reset> method always returns true.
 
-=head2 archive( type )
+=head2 archive $type
 
 As for the C<Archive::Builder> C<acrhive> method, creates an archive handle of
 the given type. Returns a C<Archive::Builder::Archive> object on success.
@@ -547,7 +552,7 @@ Returns C<undef> on error.
 
 =head1 Archive::Builder::File
 
-=head2 new( path, generator [, arguments ] )
+=head2 new $path, $generator [, @arguments ]
 
 Creates a new C<Archive::Builder::File> object and returns it. This method is
 not normally used directly, with the C<Archive::Builder::Section> method
@@ -576,34 +581,34 @@ be generated using the modified values. This is considered a feature. If you nee
 to freeze a copy of the object for the generation, you are recommended to L<Clone>
 it before passing.
 
-=head2 path()
+=head2 path
 
 Returns the path for the file. This cannot be changed after creation.
 
-=head2 generator()
+=head2 generator
 
 Returns the generator for the file. This cannot be changed after creation
 
-=head2 arguments()
+=head2 arguments
 
 Returns a reference to an array containing the arguments to be passed to
 the generator, or C<0> if there are no arguments. The list of arguments
 cannot be changed after creation ( although of course objects passed can
 be changed outside the scope of this API ).
 
-=head2 binary()
+=head2 binary
 
 This method will analyse the file contents ( generating if needed ) to
 determine if the file is a binary file. While not 100% accurate, it should
 be good enough for most situations.
 
-=head2 executable()
+=head2 executable
 
 Calling this method will add a hint to the file that it should be considered
 as an executable file, should the need arise. This is most likely used in
 situations where permissions need to be set after generation.
 
-=head2 Section()
+=head2 Section
 
 If added to a Section, the C<Section> method returns the Section to which we
 have been added.
@@ -611,24 +616,24 @@ have been added.
 Returns a L<Archive::Builder::Section> object if the File is added to one, or
 C<undef> if not.
 
-=head2 contents()
+=head2 contents
 
 Generates and returns the contents of the file as a scalar reference. Returns
 C<undef> if a generation error occurs.
 
-=head2 save( filename )
+=head2 save $filename
 
 Bypassing the normal generation process and path name, the C<save> method
 allows you to generate a single file object and save it to a specific
 filename. Any directories need to write the file will be created on demand.
 Returns C<undef> if a generation permissions error occurs.
 
-=head2 delete()
+=head2 delete
 
 If added to a Section, the C<delete> method allows us to remove and delete the 
 file from the parent Section. Always returns true.
 
-=head2 reset()
+=head2 reset
 
 If the file has been generated ( and thus cached ), the C<reset> method will
 remove any cached content from the files, forcing it to be generated again.
