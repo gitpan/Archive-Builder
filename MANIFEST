@@ -1,0 +1,14 @@
+Changes
+LICENSE
+MANIFEST
+Makefile.PL
+README
+lib/Archive/Builder.pm
+lib/Archive/Builder/Archive.pm
+lib/Archive/Builder/File.pm
+lib/Archive/Builder/Generators.pm
+lib/Archive/Builder/Section.pm
+t/01_main.t
+t/02_practical.t
+t/03_generators.t
+test.txt
