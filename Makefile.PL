@@ -19,6 +19,6 @@ WriteMakefile(
 	},
 	($] >= 5.005) ? (
 		'AUTHOR'   => 'Adam Kennedy (cpan@ali.as)',
-		'ABSTRACT' => 'File generation and archiving building framework',
+		'ABSTRACT' => 'File tree generation and archiving framework',
 	) : (),
 );

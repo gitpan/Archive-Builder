@@ -1,5 +1,8 @@
 Revision history for Perl extension Archive::Builder
 
+0.6  Fri Jun 27 19:41:43 2003
+	- Made File->save actually set executable if needed
+
 0.4  Sun Dec 15 08:54:10 2002
 	- Everything should finally work, be tested, and be documented
 

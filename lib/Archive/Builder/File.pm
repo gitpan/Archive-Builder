@@ -9,7 +9,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.5';
+	$VERSION = '0.6';
 	%_PARENT = ();
 }
 
@@ -62,15 +62,23 @@ sub save {
 	my $contents = $self->contents or return undef;
 
 	# Write the file
-	return File::Flat->write( $filename, $contents ) ? 1
-		: return $self->_error( "Error writing to '$filename': $!" );
+	File::Flat->write( $filename, $contents )
+		or return $self->_error( "Error writing to '$filename': $!" );
+	
+	# If it is executable, set the mode
+	if ( $self->{executable} ) {
+		chmod 0755, $filename;
+	}
+	
+	return 1;
 }
 
-# Is the file binary. Worked out by examining the content
+# Is the file binary. Worked out by examining the content for the null byte,
+# which should never be in a text file, but almost always is in binary files.
 sub binary {
 	my $self = shift;
 	my $contents = $self->contents;
-	return index( $$contents, "\000") == -1 ? 0 : 1;
+	return index($$contents, "\000") == -1 ? 0 : 1;
 }
 
 # Flag a File as being executable
