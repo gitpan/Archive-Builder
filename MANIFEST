@@ -1,6 +1,6 @@
 Changes
 LICENSE
-MANIFEST
+MANIFEST			This list of files
 Makefile.PL
 README
 lib/Archive/Builder.pm
@@ -12,3 +12,4 @@ t/01_main.t
 t/02_practical.t
 t/03_generators.t
 t/04_archives.t
+test.txt

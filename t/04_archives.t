@@ -3,10 +3,10 @@
 # Tests for whether making Archives actually works
 
 use strict;
-use lib '../../../modules'; # Development testing
+use lib '../../modules'; # Development testing
 use lib '../lib';           # Installation testing
 use UNIVERSAL 'isa';
-use Test::More qw{no_plan};
+use Test::More tests => 41;
 use File::Flat;
 use Archive::Builder;
 
@@ -16,7 +16,8 @@ sub init {
 	$Generator = Archive::Builder->new();
 	$Section1 = $Generator->new_section( 'one' );
 	$Section1->new_file( 'one', 'string', 'filecontents' );
-	$Section1->new_file( 'two', 'string', \"trivial" );
+	my $string = "trivial";
+	$Section1->new_file( 'two', 'string', \$string );
 
 	# Write the test file
 	File::Flat->write( 'test.txt', 'test file' );

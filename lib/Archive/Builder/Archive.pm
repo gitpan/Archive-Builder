@@ -6,6 +6,15 @@ use strict;
 use UNIVERSAL qw{isa can};
 use Archive::Builder ();
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.5';
+}
+
+
+
+
+
 # This module makes use of several Archive related modules as needed.
 # To start, catalogue the ones we can use.
 use vars qw{$dependencies $support};
@@ -171,9 +180,9 @@ sub _tar {
 		$Archive->add_data( $path, ${ $self->{files}->{$path} } );
 	}
 	
-	# Write the archive to a scalar via a tied handle
+	# Get the output
 	my $string = $Archive->write();
-	return defined $string ? \$string : undef;
+	return $string ? \$string : undef;
 }
 
 sub _tar_gz {

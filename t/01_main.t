@@ -3,10 +3,10 @@
 # Formal testing for Archive::Builder
 
 use strict;
-use lib '../../../modules'; # Development testing
+use lib '../../modules'; # Development testing
 use lib '../lib';           # Installation testing
 use UNIVERSAL 'isa';
-use Test::More qw{no_plan};
+use Test::More tests => 306;
 use Class::Autouse qw{:devel};
 use Class::Handle;
 
@@ -22,7 +22,7 @@ BEGIN {
 BEGIN {
 	ok( $] >= 5.005, "Your perl is new enough" );
 }
-	
+
 
 
 
@@ -39,15 +39,15 @@ is( Archive::Builder->errstr, '', '->errstr correctly starts at ""' );
 # Test the interface matches
 my $methods = {
 	'Archive::Builder' => [ qw{
-		new errstr
+		new errstr delete
 		add_section new_section section sections section_list remove_section file_count
 		} ],
 	'Archive::Builder::Section' => [ qw{
-		name path errstr new
+		name path errstr new Builder delete
 		add_file new_file file files file_list remove_file file_count
 		} ],
 	'Archive::Builder::File' => [ qw{
-		new path errstr generator arguments
+		new path errstr generator arguments Section delete
 		} ],
 	'Archive::Builder::Archive' => [qw{
 		types
@@ -116,7 +116,7 @@ foreach ( undef, '', 'main::nonexistant', 'Foo::bar' ) {
 ok( $File->path eq 'path', '->path returns expected value' );
 ok( $File->generator eq 'main::generator', '->generator returns expected value' );
 is( $File->arguments, 0, '->arguments returns expected value' );
-
+ok( ! $File->Section, '->Section returns nothing' );
 
 
 
@@ -158,6 +158,7 @@ ok( $Section->add_file( $File ), '->add_file( File ) returns true' );
 $expected2->{zfiles}->{path} = $expected3;
 is_deeply( $Section, $expected2, '->add_file( File ) alters Section correctly' );
 is( $Section->file_count, 1, '->file_count goes up' );
+is_deeply( $File->Section, $Section, '->Section works' );
 
 ok( ! $Section->new_file(), '->new_file() returns false' );
 is_deeply( $Section, $expected2, '->new_file() doesnt alter Section' );
@@ -202,10 +203,19 @@ ok( ! $Section->remove_file(), '->remove_file returns false for no argument' );
 is_deeply( $Section, $expected2, '->remove_file for no argument doesnt modify Section' );
 ok( ! $Section->remove_file( 'nonexistant' ), '->remove_file returns false for bad argument' );
 is_deeply( $Section, $expected2, '->remove_file for bad argument doesnt modify Section' );
+is_deeply( $Section->file('path')->Section, $Section, 'File is section links back ok' );
+$File = $Section->file('path');
 ok( $Section->remove_file( 'path' ), '->remove_file returns true for good argument' );
 delete $expected2->{zfiles}->{path};
 is_deeply( $Section, $expected2, '->remove_file removes File successfully' );
+ok( ! $File->Section, 'Removed file does not link to section' );
 
+$Section->new_file('path', 'main::generator');
+ok( $Section->file('path'), 'File added back for delete test' );
+$File = $Section->file('path');
+ok( $File->delete, '->delete for File returns true' );
+ok( ! $Section->file('path'), 'File no longer in Section' );
+ok( ! $File->Section, 'Delete file no longer links to parent' );
 
 
 
@@ -225,7 +235,8 @@ ok( $Generator->add_section( $Section ), '->add_section( Section ) returns true 
 $expected->{sections}->{name} = $expected2;
 is_deeply( $Generator, $expected, '->add_section( Section ) modifies Archive::Builder as expected' );
 ok( ! $Generator->add_section( $Section ), '->add_section( Section ) returns false for existing section' );
-is_deeply( $Generator, $expected, '->add_section( SEction ) doesnt modify Archive::Builder for existing section' );
+is_deeply( $Generator, $expected, '->add_section( Section ) doesnt modify Archive::Builder for existing section' );
+is_deeply( $Section->Builder, $Generator, '->Builder method returns as expected' );
 
 ok( ! $Generator->new_section(), '->new_section() returns false' );
 is_deeply( $Generator, $expected, '->new_section() doesnt modify object' );
@@ -241,6 +252,7 @@ my $expected5 = bless { name => 'name2', path => 'name2', zfiles => {}, }, 'Arch
 $expected->{sections}->{name2} = $expected5;
 is_deeply( $rv, $expected5, '->new_section(name) returns the expected new object' );
 is_deeply( $Generator, $expected, '->new_section(name) modifys the Archive::Builder as expected' );
+is_deeply( $Generator->section('name2')->Builder, $Generator, '->Builder works as expected' );
 
 is_deeply( $Generator->sections, { 'name' => $expected2, 'name2' => $expected5 }, 
 	'->files returns the expected structure' );
@@ -257,7 +269,9 @@ ok( ! $Generator->section( 'nonexistant' ), '->section( bad ) fails as expected'
 ok( ! $Generator->remove_section(), '->remove_section() returns false' );
 ok( ! $Generator->remove_section( 'bad' ), '->remove_section( bad ) returns false' );
 is_deeply( $Generator, $expected, '->bad remove_section() calls dont modify Archive::Builder' );
+$Section = $Generator->section('name2');
 ok( $Generator->remove_section( 'name2' ), '->remove_section( good ) returns true' );
+ok( ! $Section->Builder, '->Builder no longer refers to Builder' );
 delete $expected->{sections}->{name2};
 is_deeply( $Generator, $expected, '->remove_section( good ) modifys Archive::Builder as expected' );
  
@@ -290,7 +304,8 @@ is_deeply( $contents, \'trivial', '->contents cached correctly' );
 sub generator {
 	$call_count++;
 	my $File = shift;
-	return \'trivial';
+	my $value = 'trivial';
+	return \$value;
 }
 
 1;

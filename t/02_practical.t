@@ -3,10 +3,10 @@
 # Contains more practical tests for Archive::Builder
 
 use strict;
-use lib '../../../modules'; # Development testing
+use lib '../../modules'; # Development testing
 use lib '../lib';           # Installation testing
 use UNIVERSAL 'isa';
-use Test::More qw{no_plan};
+use Test::More tests => 22;
 use File::Flat;
 use Archive::Builder;
 
@@ -90,7 +90,8 @@ sub file_contains {
 # Archive::Builders
 sub trivial {
 	my $File = shift;
-	return \'trivial';
+	my $value = 'trivial';
+	return \$value;
 }
 
 sub direct {

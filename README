@@ -131,6 +131,13 @@ Archive::Builder
     Returns true if all files were generated and saved successfully. Returns
     "undef" if an error occurs, or the directory is bad.
 
+  delete()
+    Because of the structure used to support the parent methods, you should
+    probably explicitly delete Builds when you are done with them to avoid
+    memory leaks due to circular dependencies.
+
+    The "delete" method always returns true.
+
   archive( type )
     Creates a handle to an archive of a specified type related to the
     builder. Types can only be used if the modules that support them are
@@ -177,6 +184,12 @@ Archive::Builder::Section
     below the Builder root that will be used, or if passed a relative path,
     will set the path to a new value. You are not likely to need this, as in
     general, the same value will suffice for both the name and path.
+
+  Builder()
+    If the Section has been added to a Builder, the "Builder" method will
+    return it.
+
+    Returns a "Archive::Builder" object if added, or "undef" if not.
 
   add_file( Archive::Builder::File )
     Adds an existing "Archive::Builder::File" object to the section.
@@ -230,6 +243,12 @@ Archive::Builder::Section
     provided. Again, the directory is created on demand.
 
     Returns "undef" if an error during generation or saving occurs.
+
+  delete()
+    The "delete" method deletes a Section, removing it from it's parent
+    Builder if applicable, and removing all child Files from the Section.
+
+    Always returns true.
 
   archive( type )
     As for the "Archive::Builder" "acrhive" method, creates an archive
@@ -293,6 +312,13 @@ Archive::Builder::File
     likely used in situations where permissions need to be set after
     generation.
 
+  Section()
+    If added to a Section, the "Section" method returns the Section to which
+    we have been added.
+
+    Returns a Archive::Builder::Section object if the File is added to one,
+    or "undef" if not.
+
   contents()
     Generates and returns the contents of the file as a scalar reference.
     Returns "undef" if a generation error occurs.
@@ -302,6 +328,10 @@ Archive::Builder::File
     allows you to generate a single file object and save it to a specific
     filename. Any directories need to write the file will be created on
     demand. Returns "undef" if a generation permissions error occurs.
+
+  delete()
+    If added to a Section, the "delete" method allows us to remove and
+    delete the file from the parent Section. Always returns true.
 
 TODO
     Better control over caching, more archive types, pre-generation testing.
@@ -313,7 +343,7 @@ AUTHOR
             Adam Kennedy ( maintainer )
             cpan@ali.as
             http://ali.as/
-        
+
 SEE ALSO
     Archive::Builder::Archive, Archive::Builder::Generators, Archive::Tar,
     Archive::Zip.

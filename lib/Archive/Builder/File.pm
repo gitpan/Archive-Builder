@@ -4,7 +4,14 @@ package Archive::Builder::File;
 
 use strict;
 use UNIVERSAL 'isa';
+use Scalar::Util 'refaddr';
 use Archive::Builder ();
+
+use vars qw{$VERSION %_PARENT};
+BEGIN {
+	$VERSION = '0.5';
+	%_PARENT = ();
+}
 
 
 
@@ -16,23 +23,23 @@ use Archive::Builder ();
 sub new {
 	my $class = shift;
 	$class->_clear();
-	
+
 	# Get and check the path
 	my $path = Archive::Builder->_check( 'relative path', $_[0] ) ? shift
 		: return $class->_error( 'Invalid path format for File creation' );
-	
+
 	# Get and check the Archive::Builder function
 	my $generator = Archive::Builder->_check( 'generator', $_[0] ) ? shift
 		: return $class->_error( 'Invalid generator function: '
 			. Archive::Builder->errstr );
-	
+
 	# Create the File object
 	my $self = bless {
 		path => $path,
 		generator => $generator,
 		arguments => scalar @_ ? [ @_ ] : 0,
 		}, $class;
-	
+
 	return $self;
 }
 
@@ -45,7 +52,7 @@ sub arguments { $_[0]->{arguments} ? [@{ $_[0]->{arguments} }] : 0 }
 sub save {
 	my $self = shift;
 	my $filename = shift or return undef;
-	
+
 	# Can we write to the location
 	unless ( File::Flat->canWrite( $filename ) ) {
 		return $self->_error( "Insufficient permissions to write to '$filename'" );
@@ -72,6 +79,23 @@ sub executable {
 	$self->{executable} = 1;
 }
 
+# Get our parent Section
+sub Section {
+	my $self = shift;
+	return $_PARENT{ refaddr $self };
+}
+
+# Delete this from from it's parent
+sub delete {
+	my $self = shift;
+	my $Section = $self->Section or return 1;
+	
+	# Remove from our parent
+	$Section->remove_file( $self->path );
+	
+	return 1;
+}	
+
 
 
 
@@ -96,7 +120,7 @@ sub contents {
 # Actually generate the contents
 sub _contents {
 	my $self = shift;
-	
+
 	# Load the module for the function if needed
 	my $generator = $self->{generator} =~ /::/
 		? $self->{generator}
@@ -105,13 +129,17 @@ sub _contents {
 	unless ( Class::Autouse->load( $module ) ) {
 		return $self->_error( "Failed to load module '$module'" );
 	}
-	
+
 	# Call the function
 	no strict 'refs';
 	my $result = $self->{arguments}
 		? &{ $generator }( $self, @{ $self->{arguments} } )
 		: &{ $generator }( $self );
-	return isa( $result, 'SCALAR' ) ? $result : undef;
+	return undef unless isa( $result, 'SCALAR' );
+
+	# Clean up newlines before returning
+	$$result =~ s/(?:\015\012|\015|\012)/\n/g;
+	return $result;
 }
 
 
@@ -126,8 +154,8 @@ sub errstr { return Archive::Builder->errstr }
 sub _error { shift; return Archive::Builder->_error( @_ ) }
 sub _clear { Archive::Builder->_clear }
 
-1;	
-		
+1;
+
 __END__
 
 =pod
