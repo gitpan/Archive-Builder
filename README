@@ -98,15 +98,25 @@ Archive::Builder
     The "add_section" method takes as an argument an
     "Archive::Builder::Section" object, and adds it to the builder.
 
-    Returns true if the section is added successfully. Returns undef on
+    Returns true if the section is added successfully. Returns "undef" on
     error, for example if another Section with the same name has already
     been added.
 
   new_section $name
     Creates a new "Archive::Builder::Section" object with the name provided,
-    and immediately adds it to the builder.
+    and immediately adds it to the builder. Returns the Section created.
 
     Returns the new Section object on success. Returns undef on error.
+
+  new_sections $name [, $name, ... ]
+  new_sections \%names_to_paths
+    Primarily used for initial set up of Builder objects, the "new_sections"
+    method adds a number of sections at the same time.
+
+    It accepts as argument either the names of the section to be created,
+    with the paths of them to be the same as their names, or alternatively,
+    a reference to a HASH with the keys as section names, and the values as
+    section paths.
 
   section $name
     Finds and returns a "Archive::Builder::Section" object with the provided
@@ -367,9 +377,7 @@ SUPPORT
     Contact the author
 
 AUTHOR
-            Adam Kennedy ( maintainer )
-            cpan@ali.as
-            http://ali.as/
+    Adam Kennedy (Maintainer), <http://ali.as/>, cpan@ali.as
 
 SEE ALSO
     Archive::Builder::Archive, Archive::Builder::Generators, Archive::Tar,

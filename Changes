@@ -1,5 +1,9 @@
 Revision history for Perl extension Archive::Builder
 
+1.02 Sun Sep  5 2004
+	- Added the Archive::Builder::new_sections instance method
+	- Brought crusty test scripts up to date with current style
+
 1.01 Tue Apr 24 2004
 	- Fixed a bug in file-type support detection in Archive::Builder::Archive
 	- Turned on warnings for all tests, which would have caught it earlier

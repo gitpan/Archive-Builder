@@ -3,10 +3,18 @@
 # Tests for whether making Archives actually works
 
 use strict;
-use File::Spec::Functions qw{:ALL};
-use lib catdir( updir(), updir(), 'modules' ), # Development testing
-        catdir( updir(), 'lib' );              # Installation testing
+use lib ();
 use UNIVERSAL 'isa';
+use File::Spec::Functions ':ALL';
+BEGIN {
+	$| = 1;
+	unless ( $ENV{HARNESS_ACTIVE} ) {
+		require FindBin;
+		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
+		lib->import( catdir( updir(), updir(), 'modules') );
+	}
+}
+
 use Test::More tests => 41;
 use File::Flat;
 use Archive::Builder;
@@ -30,10 +38,10 @@ sub init {
 
 # Test the file contents
 $files = {
-        './first/one/one' => 'filecontents',
-        './first/one/two' => 'trivial',
+        './first/one/one'   => 'filecontents',
+        './first/one/two'   => 'trivial',
         './first/one/three' => "test file",
-        './first/one/four' => 'test file',
+        './first/one/four'  => 'test file',
         };
 
 }

@@ -5,14 +5,13 @@ WriteMakefile(
 	'VERSION_FROM' => 'lib/Archive/Builder.pm',
 	'PREREQ_PM'    => {
 		# Need by Archive Builder
-		Class::Autouse   => 1.01,
+		Class::Autouse   => 1.04,
 		File::Spec       => 0.83,
 		File::Flat       => 0.91,
-		Class::Inspector => 1.04,
+		Class::Inspector => 1.06,
 		IO::Scalar       => 2.104,
 		IO::Zlib         => 0,
-		Scalar::Util     => 1.11,
-		List::Util       => 0,
+		List::Util       => 1.11,
 
 		# Needed by tests
 		Test::More       => 0,

@@ -2,7 +2,7 @@ package Archive::Builder::Section;
 
 # A section is a tree of Archive::Builder::File's
 
-require 5.005;
+use 5.005;
 use strict;
 use UNIVERSAL 'isa';
 use Scalar::Util 'refaddr';
@@ -10,7 +10,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '1.01';
+	$VERSION = '1.02';
 	%_PARENT = ();
 }
 
@@ -44,9 +44,9 @@ sub path {
 	return $self->{path} unless @_;
 
 	# Set the path
-	my $path = Archive::Builder->_check( 'relative path', $_[0] )
-		? shift : return undef;
+	my $path = Archive::Builder->_relative_path($_[0]) ? shift : return undef;
 	$self->{path} = $path;
+
 	1;
 }
 

@@ -9,7 +9,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.01';
+	$VERSION = '1.02';
 }
 
 
@@ -242,9 +242,7 @@ Contact the author
 
 =head1 AUTHOR
 
-        Adam Kennedy ( maintainer )
-        cpan@ali.as
-	http://ali.as/
+Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
         
 =head1 SEE ALSO
 

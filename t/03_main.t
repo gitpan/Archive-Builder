@@ -3,65 +3,34 @@
 # Formal testing for Archive::Builder
 
 use strict;
-use File::Spec::Functions qw{:ALL};
-use lib catdir( updir(), updir(), 'modules' ), # Development testing
-        catdir( updir(), 'lib' );              # Installation testing
+use lib ();
 use UNIVERSAL 'isa';
-use Test::More tests => 317;
-use Class::Autouse qw{:devel};
-use Class::Handle;
-
-# Set up any needed globals
+use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
+	unless ( $ENV{HARNESS_ACTIVE} ) {
+		require FindBin;
+		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
+		lib->import( catdir( updir(), updir(), 'modules') );
+	}
 }
 
+use Test::More tests => 301;
+use Class::Autouse ':devel';
+use Class::Handle ();
 
-
-
-# Check their perl version
+# Check the perl version
 BEGIN {
+	$| = 1;
 	ok( $] >= 5.005, "Your perl is new enough" );
 }
 
-
-
-
-
-# Does the module load
-BEGIN { use_ok( 'Archive::Builder' ) }
-require_ok( 'Archive::Builder');
-
-
+use Archive::Builder ();
 is( Archive::Builder->errstr, '', '->errstr correctly starts at ""' );
+is( Archive::Builder::Section->errstr, '', '->errstr correctly starts at ""' );
+is( Archive::Builder::File->errstr, '', '->errstr correctly starts at ""' );
+is( Archive::Builder::Archive->errstr, '', '->errstr correctly starts at ""' );
 
-
-
-# Test the interface matches
-my $methods = {
-	'Archive::Builder' => [ qw{
-		new errstr delete
-		add_section new_section section sections section_list remove_section file_count
-		} ],
-	'Archive::Builder::Section' => [ qw{
-		name path errstr new Builder delete
-		add_file new_file file files file_list remove_file file_count
-		} ],
-	'Archive::Builder::File' => [ qw{
-		new path errstr generator arguments Section delete
-		} ],
-	'Archive::Builder::Archive' => [qw{
-		types
-		new type generate save
-		} ],
-	};
-foreach my $class ( sort keys %$methods ) {
-	my $Class = Class::Handle->new( $class )
-		or die "Failed to get handle for class '$class'";
-	foreach ( @{ $methods->{$class} } ) {	
-		ok( $Class->can( $_ ), "$class has public API method '$_'" );
-	}
-}
 
 
 
@@ -70,7 +39,7 @@ foreach my $class ( sort keys %$methods ) {
 # Section 1 - Test constructors
 
 # Create a trivial Archive::Builder
-my $Trivial = Archive::Builder->new();
+my $Trivial = Archive::Builder->new;
 ok( $Trivial, 'Archive::Builder constructor returns true' );
 my $expected = bless { sections => {} }, 'Archive::Builder';
 is_deeply( $Trivial, $expected, 'Creation of trivial Archive::Builder returns expected value' );
@@ -122,7 +91,45 @@ ok( ! $File->Section, '->Section returns nothing' );
 
 
 
-###################################################################
+
+#####################################################################
+# Test Archive::Builder->new_sections
+
+{
+my $Builder = Archive::Builder->new;
+isa_ok( $Builder, 'Archive::Builder' );
+is( $Builder->new_sections, 1, '->new_sections() returns true' );
+is( $Builder->sections, 0,     '->new_sections() does not add sections' );
+is( $Builder->new_sections('foo', 'bar'), 1, '->new_sections returns true' );
+is( scalar($Builder->section_list), 2, '->new_sections adds 2 Sections' );
+isa_ok( $Builder->section('foo'), 'Archive::Builder::Section' );
+isa_ok( $Builder->section('bar'), 'Archive::Builder::Section' );
+is( $Builder->section('foo')->name, 'foo', 'Adds Section foo' );
+is( $Builder->section('foo')->path, 'foo', 'Adds Section foo with the same path' );
+}
+
+# Test the alternate form
+{
+my $Builder = Archive::Builder->new;
+isa_ok( $Builder, 'Archive::Builder' );
+is( $Builder->new_sections( {
+	'foo' => 'this',
+	'bar' => 'this/that',
+	} ), 1, '->new_sections returns true' );
+is( scalar($Builder->section_list), 2, '->new_sections adds 2 Sections' );
+isa_ok( $Builder->section('foo'), 'Archive::Builder::Section' );
+isa_ok( $Builder->section('bar'), 'Archive::Builder::Section' );
+is( $Builder->section('foo')->name, 'foo', 'Adds Section foo' );
+is( $Builder->section('foo')->path, 'this', "Adds Section foo with the path 'this'" );
+is( $Builder->section('bar')->name, 'bar', 'Adds Section bar' );
+is( $Builder->section('bar')->path, 'this/that', "Adds Section bar with the path 'this/that'" );
+}
+
+
+
+
+
+#####################################################################
 # Test error handling
 
 my @things = ( qw{Archive::Builder Archive::Builder::Section Archive::Builder::File
@@ -321,7 +328,6 @@ ok( ! exists $File->{contents}, "After reseting, file does not have a ->{content
 ######################################################################
 # Resources for tests
 
-
 sub generator {
 	$call_count++;
 	my $File = shift;
@@ -330,4 +336,3 @@ sub generator {
 }
 
 1;
-

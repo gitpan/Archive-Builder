@@ -3,10 +3,18 @@
 # Contains more practical tests for Archive::Builder
 
 use strict;
-use File::Spec::Functions qw{:ALL};
-use lib catdir( updir(), updir(), 'modules' ), # Development testing
-        catdir( updir(), 'lib' );              # Installation testing
+use lib ();
 use UNIVERSAL 'isa';
+use File::Spec::Functions ':ALL';
+BEGIN {
+	$| = 1;
+	unless ( $ENV{HARNESS_ACTIVE} ) {
+		require FindBin;
+		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
+		lib->import( catdir( updir(), updir(), 'modules') );
+	}
+}
+
 use Test::More tests => 22;
 use File::Flat;
 use Archive::Builder;

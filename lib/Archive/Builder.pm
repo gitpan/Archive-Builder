@@ -3,7 +3,7 @@ package Archive::Builder;
 # This packages provides a simplified object for a collection of generated
 # files, and ways to then distribute the files.
 
-require 5.005;
+use 5.005;
 use strict;
 use UNIVERSAL 'isa';
 use List::Util ();
@@ -23,7 +23,7 @@ use Archive::Builder::Generators ();
 # Version
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.01';
+	$VERSION = '1.02';
 	$errstr  = '';
 }
 
@@ -98,22 +98,10 @@ sub _archive_content {
 #########################################################################
 # Working with sections
 
-# Add a new section and return it
-sub new_section {
-	my $self = shift;
-
-	# Create the section with the arguments
-	my $Section = Archive::Builder::Section->new( @_ )
-		or return undef;
-
-	$self->add_section($Section) and $Section;
-}
-
 # Add an existing section
 sub add_section {
 	my $self = shift;
-	my $Section = isa( $_[0], 'Archive::Builder::Section' )
-		? shift : return undef;
+	my $Section = isa($_[0], 'Archive::Builder::Section') ? shift : return undef;
 
 	# Does a section with the name already exists?
 	my $name = $Section->name;
@@ -122,11 +110,33 @@ sub add_section {
 	}
 
 	# Add the section
+	$Archive::Builder::Section::_PARENT{refaddr $Section} = $self;
 	$self->{sections}->{$name} = $Section;
+}
 
-	# Add it's parent reference
-	$Archive::Builder::Section::_PARENT{ refaddr $Section } = $self;
-	
+# Add a new section and return it
+sub new_section {
+	my $self = shift;
+
+	# Create the section with the arguments
+	my $Section = Archive::Builder::Section->new( @_ ) or return undef;
+	$self->add_section($Section);
+}
+
+# Add a number of new sections
+sub new_sections {
+	my $self = shift;
+	my %sections = (ref $_[0] eq 'HASH') ? %{$_[0]}
+		: map { $_ => $_ } @_;
+
+	# Add each of the sections
+	foreach my $name ( sort keys %sections ) {
+		my $Section = $self->new_section($name) or return undef;
+		if ( $sections{$name} ne $name ) {
+			$Section->path($sections{$name}) or return undef;
+		}
+	}
+
 	1;
 }
 
@@ -180,30 +190,9 @@ sub _check {
 
 	if ( $type eq 'relative path' ) {
 		# This makes sure a directory isn't bad
-		return '' unless defined $string;
-		return '' unless length $string;
-
-		# Get the canonical version of the path
-		my $canon = File::Spec->canonpath( $string );
-
-		# Does the path contain escaping forward slashes
-		unless ( isa( 'File::Spec', 'File::Spec::Win32' ) ) {
-			return '' if $string =~ /\\/;
-		}
-
-		# We allow one specific exception to the upwards rules.
-		# That is in the case where we want to put the content from
-		# section into the root of the Builder tree.
-		return $string if $string eq '.';
-
-		# Does the path contain upwards stuff?
-		return '' unless File::Spec->no_upwards( $string );
-		return '' if $string =~ /\.\./;
-
-		# Is the path absolute
-		return File::Spec->file_name_is_absolute( $string ) ? '' : 1;
+		return $either->_relative_path($string);
 	}
-	
+
 	if ( $type eq 'generator' ) {
 		return $either->_error( 'No generator defined' ) unless defined $string;
 
@@ -230,6 +219,33 @@ sub _check {
 	}
 
 	undef;
+}
+
+sub _relative_path {
+	my $either = shift;
+	my $string = shift;
+	return '' unless defined $string;
+	return '' unless length $string;
+
+	# Get the canonical version of the path
+	my $canon = File::Spec->canonpath( $string );
+
+	# Does the path contain escaping forward slashes
+	unless ( isa('File::Spec', 'File::Spec::Win32') ) {
+		return '' if $string =~ /\\/;
+	}
+
+	# We allow one specific exception to the upwards rules.
+	# That is in the case where we want to put the content from
+	# section into the root of the Builder tree.
+	return $string if $string eq '.';
+
+	# Does the path contain upwards stuff?
+	return '' unless File::Spec->no_upwards( $string );
+	return '' if $string =~ /\.\./;
+
+	# Is the path absolute
+	! File::Spec->file_name_is_absolute( $string );
 }
 
 # Error handling
@@ -294,10 +310,10 @@ formats. You can also C<save> and get the C<archive> any of the individual
 sections within the builder.
 
 During the generation process for an entire C<Archive::Builder> a subdirectory
-is created for each section matching the name of the section. So, for a builder
-with a Section name 'one', containing a single file 'two.txt', and a section
-'three', containing files 'four.html' and 'five.dat', the following file
-structure would result
+is created for each section matching the name of the section. So, for a
+builder with a Section name 'one', containing a single file 'two.txt', and a
+section 'three', containing files 'four.html' and 'five.dat', the following
+file structure would result
 
   one/two.txt
   three/four.html
@@ -328,16 +344,17 @@ generate correctly.
 =head1 METHODS
 
 The methods for the three main classes involved in generation trees,
-C<Archive::Builder>, C<Archive::Builder::Section> and C<Archive::Builder::File>
-are documented below. For the archive handlers the builders generate, see
-L<Archive::Builder::Archive>. For information on the built-in generators, and
-how to write your own generators, see L<Archive::Builder::Generators>.
+C<Archive::Builder>, C<Archive::Builder::Section> and
+C<Archive::Builder::File> are documented below. For the archive handlers the
+builders generate, see L<Archive::Builder::Archive>. For information on the
+built-in generators, and how to write your own generators, see
+L<Archive::Builder::Generators>.
 
 =head2 Common Error Handlers
 
-Errors from any object of any type below Archive::Builder are set in the global
-C<$Archive::Builder::errstr> variable. They can also be retrieved from the
-C<errstr()> method called on any object.
+Errors from any object of any type below Archive::Builder are set in the
+global C<$Archive::Builder::errstr> variable. They can also be retrieved
+from the C<errstr()> method called on any object.
 
 =head1 Archive::Builder
 
@@ -351,25 +368,38 @@ C<Archive::Builder> object.
 The C<add_section> method takes as an argument an C<Archive::Builder::Section>
 object, and adds it to the builder.
 
-Returns true if the section is added successfully. Returns undef on error, for
-example if another Section with the same name has already been added.
+Returns true if the section is added successfully. Returns C<undef> on error,
+for example if another Section with the same name has already been added.
 
 =head2 new_section $name
 
 Creates a new C<Archive::Builder::Section> object with the name provided, and
-immediately adds it to the builder.
+immediately adds it to the builder. Returns the Section created.
 
 Returns the new Section object on success. Returns undef on error.
 
+=head2 new_sections $name [, $name, ... ]
+
+=head2 new_sections \%names_to_paths
+
+Primarily used for initial set up of Builder objects, the C<new_sections>
+method adds a number of sections at the same time.
+
+It accepts as argument either the names of the section to be created, with
+the paths of them to be the same as their names, or alternatively, a
+reference to a HASH with the keys as section names, and the values as
+section paths.
+
 =head2 section $name
 
-Finds and returns a C<Archive::Builder::Section> object with the provided name
-within the builder and returns it. Returns undef if passed name does not exist.
+Finds and returns a C<Archive::Builder::Section> object with the provided
+name within the builder and returns it. Returns undef if passed name does
+not exist.
 
 =head2 sections
 
-Returns a hash containing all the sections, indexed by name. Returns C<0> if no
-sections have been created in the builder.
+Returns a hash containing all the sections, indexed by name. Returns C<0> if
+no sections have been created in the builder.
 
 =head2 section_list
 
@@ -568,16 +598,16 @@ C<Foo::Bar::makeme>, a test to make sure C<Foo::Bar> is installed will be done.
 
 To specify a function in the the main package ( say in a script ), the format
 C<main::function> B<MUST> be used. A generator value that does not contain a
-package seperator will be assumed to be one of the default generators. The list
-of default generators, and instructions on how to write your own generators, are
-in the L<Archive::Builder::Generators> documentation.
+package seperator will be assumed to be one of the default generators. The
+list of default generators, and instructions on how to write your own
+generators, are in the L<Archive::Builder::Generators> documentation.
 
-Anything passed after the generator are assumed to be arguments to the generator
-function, and will be stored and passed as needed. Note that the arguments are
-not copied or cloned, so any objects passed as arguments and later modified, will
-be generated using the modified values. This is considered a feature. If you need
-to freeze a copy of the object for the generation, you are recommended to L<Clone>
-it before passing.
+Anything passed after the generator are assumed to be arguments to the
+generator function, and will be stored and passed as needed. Note that the
+arguments are not copied or cloned, so any objects passed as arguments and
+later modified, will be generated using the modified values. This is
+considered a feature. If you need to freeze a copy of the object for the
+generation, you are recommended to L<Clone|Clone> it before passing.
 
 =head2 path
 
@@ -628,8 +658,8 @@ Returns C<undef> if a generation permissions error occurs.
 
 =head2 delete
 
-If added to a Section, the C<delete> method allows us to remove and delete the 
-file from the parent Section. Always returns true.
+If added to a Section, the C<delete> method allows us to remove and delete
+the file from the parent Section. Always returns true.
 
 =head2 reset
 
@@ -648,9 +678,7 @@ Contact the author
 
 =head1 AUTHOR
 
-        Adam Kennedy ( maintainer )
-        cpan@ali.as
-	http://ali.as/
+Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
 =head1 SEE ALSO
 
