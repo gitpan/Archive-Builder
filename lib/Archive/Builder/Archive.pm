@@ -8,7 +8,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.9';
+	$VERSION = '1.0';
 }
 
 

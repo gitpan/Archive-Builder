@@ -7,6 +7,11 @@ use strict;
 use UNIVERSAL 'isa';
 use Archive::Builder ();
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '1.0';
+}
+
 
 
 

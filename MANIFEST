@@ -12,4 +12,5 @@ t/01_main.t
 t/02_practical.t
 t/03_generators.t
 t/04_archives.t
+t/05_binary.t
 META.yml                                Module meta-data (added by MakeMaker)

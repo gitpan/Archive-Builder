@@ -3,8 +3,9 @@
 # Contains more practical tests for Archive::Builder
 
 use strict;
-use lib '../../modules'; # Development testing
-use lib '../lib';           # Installation testing
+use File::Spec::Functions qw{:ALL};
+use lib catdir( updir(), updir(), 'modules' ), # Development testing
+        catdir( updir(), 'lib' );              # Installation testing
 use UNIVERSAL 'isa';
 use Test::More tests => 22;
 use File::Flat;
@@ -80,7 +81,7 @@ sub file_contains {
 	return ok( undef, "Can't read contents of $filename" ) unless -r $filename;
 	my $contents = File::Flat->slurp( $filename )
 		or return ok( undef, 'Error while slurping file' );
-	return is( $$contents, $contains, "File $filename contents match expected value" );
+	is( $$contents, $contains, "File $filename contents match expected value" );
 }
 
 
@@ -91,19 +92,19 @@ sub file_contains {
 sub trivial {
 	my $File = shift;
 	my $value = 'trivial';
-	return \$value;
+	\$value;
 }
 
 sub direct {
 	my $File = shift;
 	my $contents = shift;
-	return \$contents;
+	\$contents;
 }
 
 sub numbers {
 	my $File = shift;
 	my $string = join '', map { "$_\n" } 1 .. 10;
-	return \$string;
+	\$string;
 }
 
 

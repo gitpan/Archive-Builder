@@ -1,5 +1,9 @@
 Revision history for Perl extension Archive::Builder
 
+1.0  Tue Dec  2 2003
+	- 0.9 introduced a bug in Archive::Builder::File->binary.
+	  Fixed the bug, and added a regression test for the bug.
+
 0.9  Tue Dec  2 2003
 	- Some zipping code has gotten more efficient.
 	  Reduced size of expected size in tests to match.

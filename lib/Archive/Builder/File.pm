@@ -9,7 +9,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.9';
+	$VERSION = '1.0';
 	%_PARENT = ();
 }
 
@@ -76,7 +76,7 @@ sub save {
 sub binary {
 	my $self = shift;
 	my $contents = $self->contents or return undef;
-	! index($$contents, "\000") == -1;
+	index($$contents, "\000") != -1;
 }
 
 # Flag a File as being executable

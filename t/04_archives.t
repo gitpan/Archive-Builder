@@ -3,8 +3,9 @@
 # Tests for whether making Archives actually works
 
 use strict;
-use lib '../../modules'; # Development testing
-use lib '../lib';           # Installation testing
+use File::Spec::Functions qw{:ALL};
+use lib catdir( updir(), updir(), 'modules' ), # Development testing
+        catdir( updir(), 'lib' );              # Installation testing
 use UNIVERSAL 'isa';
 use Test::More tests => 41;
 use File::Flat;
