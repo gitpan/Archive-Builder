@@ -381,7 +381,7 @@ SUPPORT
     Contact the author
 
 AUTHOR
-    Adam Kennedy (Maintainer), <http://ali.as/>, cpan@ali.as
+    Adam Kennedy <cpan@ali.as>, <http://ali.as/>
 
 SEE ALSO
     Archive::Builder::Archive, Archive::Builder::Generators, Archive::Tar,

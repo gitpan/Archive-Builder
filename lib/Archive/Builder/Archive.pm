@@ -3,12 +3,12 @@ package Archive::Builder::Archive;
 # Represents the actual or potential Archive.
 
 use strict;
-use UNIVERSAL 'isa', 'can';
+use Scalar::Util;
 use Archive::Builder ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
 }
 
 
@@ -47,9 +47,9 @@ sub types {
 
 # Create the new Archive handle
 sub new {
-	my $class = shift;
-	my $type = exists $support->{$_[0]} ? shift : return undef;
-	my $Source = can( $_[0], '_archive_content' ) ? shift : return undef;
+	my $class  = shift;
+	my $type   = exists $support->{$_[0]} ? shift : return undef;
+	my $Source = _CAN(shift, '_archive_content') or return undef;
 
 	# Can we use the type?
 	unless ( $support->{$type} ) {
@@ -108,7 +108,7 @@ sub _generate {
 
 # Saves the archive to disk
 sub save {
-	my $self = shift;
+	my $self     = shift;
 	my $filename = shift;
 
 	# Add the extension to the filename if needed
@@ -208,6 +208,11 @@ sub errstr { Archive::Builder->errstr }
 sub _error { shift; Archive::Builder->_error(@_) }
 sub _clear { Archive::Builder->_clear }
 
+# Params::Util style checking function
+sub _CAN {
+	(defined $_[0] and Scalar::Util::blessed($_[0]) and $_[0]->can($_[1])) ? $_[0] : undef;
+}
+
 1;
 
 __END__
@@ -269,7 +274,7 @@ Contact the author
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
         
 =head1 SEE ALSO
 

@@ -4,12 +4,14 @@ package Archive::Builder::Generators;
 # for the most common cases.
 
 use strict;
-use UNIVERSAL 'isa';
+use Params::Util '_INSTANCE',
+                 '_SCALAR0',
+                 '_HASH0';
 use Archive::Builder ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
 }
 
 
@@ -21,9 +23,9 @@ BEGIN {
 
 # Recieves as an argument the exact string the file should contain
 sub string {
-	my $File = isa( $_[0], 'Archive::Builder::File' ) ? shift : return undef;
+	my $File   = _INSTANCE(shift, 'Archive::Builder::File' ) or return undef;
 	my $string = shift;
-	isa( $string, 'SCALAR' ) ? $string
+	_SCALAR0($string) ? $string
 		: ref $string ? undef
 		: defined $string ? \$string
 		: undef;
@@ -31,7 +33,7 @@ sub string {
 
 # Recieves as an argument the name of a file
 sub file {
-	my $File = isa( $_[0], 'Archive::Builder::File' ) ? shift : return undef;
+	my $File     = _INSTANCE(shift, 'Archive::Builder::File') or return undef;
 	my $filename = -f $_[0] ? shift : return undef;
 
 	# Slurp in the file
@@ -43,11 +45,11 @@ sub file {
 # and returns it. An optional second argument is the number of bytes 
 # to read in at a time ( the chunk size ). Default is 8192 ( 8 kilobytes )
 sub handle {
-        my $File = isa( $_[0], 'Archive::Builder::File' ) ? shift : return undef;
+        my $File = _INSTANCE(shift, 'Archive::Builder::File') or return undef;
 
 	# Get and check the handle
-	my $handle = isa( $_[0], 'IO::Handle' ) ? shift
-		: return $File->_error( 'Was not passed an IO::Handle argument' );
+	my $handle = _INSTANCE(shift, 'IO::Handle')
+		or return $File->_error( 'Was not passed an IO::Handle argument' );
 	my $chunk_size = shift || (8 * 1024);
 
 	# Read in everything
@@ -73,7 +75,7 @@ sub handle {
 # The second argument is the file name withing the Template object.
 # The third argument is the hash reference to pass to the template.
 sub template {
-	my $File = isa( $_[0], 'Archive::Builder::File' ) ? shift : return undef;
+	my $File = _INSTANCE(shift, 'Archive::Builder::File' ) or return undef;
 
 	# Before beginning, test to see if Template toolkit is installed
 	unless ( Class::Autouse->load( 'Template' ) ) {
@@ -81,10 +83,11 @@ sub template {
 	}
 	
 	# Get and check the arguments
-	my $Template = isa( $_[0], 'Template' ) ? shift
-		: return $File->_error( 'First argument was not a Template object' );
-	my $toparse = shift or return $File->_error( 'You did not specify something to parse' );
-	my $args = (isa( $_[0], 'HASH' ) || ! defined $_[0]) ? shift
+	my $Template = _INSTANCE(shift, 'Template' )
+		or return $File->_error( 'First argument was not a Template object' );
+	my $toparse = shift
+		or return $File->_error( 'You did not specify something to parse' );
+	my $args = (_HASH0($_[0]) || ! defined $_[0]) ? shift
 		: return $File->_error( 'Invalid argument hashref for Template' );
 	
 	# Create a string to capture the output into.
@@ -242,7 +245,7 @@ Contact the author
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
         
 =head1 SEE ALSO
 

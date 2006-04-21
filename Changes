@@ -1,5 +1,11 @@
 Revision history for Perl extension Archive::Builder
 
+1.06 Fri 21 Apr 2006
+	- No functional changes
+	- Removed the use of UNIVERSAL::isa and UNIVERSAL::can
+	- Moved from old CVS to new SVN repository
+	- Ported installer to use Module::Install 0.62
+
 1.05 Tue Feb 15 2005
 	- Removing braindead pass-through Build.PL file
 

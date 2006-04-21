@@ -4,14 +4,18 @@
 
 use strict;
 use lib ();
-use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
 	unless ( $ENV{HARNESS_ACTIVE} ) {
 		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), updir(), 'modules') );
+		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
+		chdir catdir( $FindBin::Bin, updir() );
+		lib->import(
+			catdir('blib', 'arch'),
+			catdir('blib', 'lib' ),
+			catdir('lib'),
+			);
 	}
 }
 
@@ -85,7 +89,7 @@ sub test_common {
 	# Try to get the new object
 	my $Archive = $Generator->archive( $type );
 	ok( $Archive, 'Builder->archive returns true' );
-	ok( isa( $Archive, 'Archive::Builder::Archive' ), 'Builder->archive returns an archive' );
+	isa_ok( $Archive, 'Archive::Builder::Archive' );
 	is( $Archive->type, $type, "Archive->type is $type" );
 	
 }
@@ -98,7 +102,7 @@ sub test_tar {
 	my $scalar = $Archive->generate;
 	
 	# Does the string match the expected value
-	ok( isa( $scalar, 'SCALAR'), '->generate returns a scalar ref' );
+	ok( ref($scalar) eq 'SCALAR', '->generate returns a scalar ref' );
 	ok( ($$scalar =~ /trivial/ and $$scalar =~ /filecontents/), 'Tar file appears to contain the correct stuff' );
 	ok( length $$scalar > 500, 'Length appears to be great enough' );
 
@@ -118,7 +122,7 @@ sub test_tgz {
 	my $scalar = $Archive->generate;
 
 	# Does the string match the expected value
-	ok( isa( $scalar, 'SCALAR'), '->generate returns a scalar ref' );
+	ok( ref($scalar) eq 'SCALAR', '->generate returns a scalar ref' );
 	ok( $$scalar =~ /^(?:\037\213|\037\235)/, 'Contents appears to be gzipped' );
 	ok( length $$scalar > 160, 'Length appears to be long enough to contain everything' );
 
@@ -137,7 +141,7 @@ sub test_tar_gz {
         my $scalar = $Archive->generate;
 
         # Does the string match the expected value
-        ok( isa( $scalar, 'SCALAR'), '->generate returns a scalar ref' );
+        ok( ref($scalar) eq 'SCALAR', '->generate returns a scalar ref' );
         ok( $$scalar =~ /^(?:\037\213|\037\235)/, 'Contents appears to be gzipped' );
 	ok( length $$scalar > 160, 'Length appears to be long enough to contain everything' );
 
@@ -156,7 +160,7 @@ sub test_zip {
         my $scalar = $Archive->generate;
 
         # Does the string match the expected value
-        ok( isa( $scalar, 'SCALAR'), '->generate returns a scalar ref' );
+        ok( ref($scalar) eq 'SCALAR', '->generate returns a scalar ref' );
         ok( $$scalar =~ /^PK/, 'Contents appears to be zipped' );
         ok( length $$scalar > 470, 'Length appears to be long enough to contain everything' );
 

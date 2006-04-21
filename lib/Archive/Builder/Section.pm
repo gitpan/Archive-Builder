@@ -4,13 +4,13 @@ package Archive::Builder::Section;
 
 use 5.005;
 use strict;
-use UNIVERSAL 'isa';
 use Scalar::Util 'refaddr';
+use Params::Util '_INSTANCE';
 use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
 	%_PARENT = ();
 }
 
@@ -88,7 +88,9 @@ sub save {
 }
 
 # Get the parent for the Section, if one exists
-sub Builder { $_PARENT{refaddr $_[0]} }
+sub Builder {
+	$_PARENT{ refaddr $_[0] };
+}
 
 # Delete this from from its parent, and remove all our children
 sub delete {
@@ -110,10 +112,17 @@ sub delete {
 # If any files have been generated, flush the content cache
 # so they will be generated again.
 # Just pass the call down to the files.
-sub reset { foreach ( $_[0]->file_list ) { $_->reset } 1 }
+sub reset {
+	foreach ( $_[0]->file_list ) {
+		$_->reset;
+	}
+	1;
+}
 
 # Get an Archive for just this section
-sub archive { Archive::Builder::Archive->new( $_[1], $_[0] ) }
+sub archive {
+	Archive::Builder::Archive->new( $_[1], $_[0] );
+}
 
 # Get the archive content hash
 sub _archive_content {
@@ -151,8 +160,8 @@ sub new_file {
 # Add a new file
 sub add_file {
 	my $self = shift;
-	my $File = isa( $_[0], 'Archive::Builder::File' ) ? shift
-		: return $self->_error( 'Did not pass a File as argument' );
+	my $File = _INSTANCE(shift, 'Archive::Builder::File' )
+		or return $self->_error( 'Did not pass a File as argument' );
 
 	# Does the file clash with an existing one
 	unless ( $self->_no_path_clashes( $File->path ) ) {

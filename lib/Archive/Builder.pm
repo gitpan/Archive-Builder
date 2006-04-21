@@ -5,9 +5,9 @@ package Archive::Builder;
 
 use 5.005;
 use strict;
-use UNIVERSAL 'isa';
-use List::Util ();
-use File::Spec ();
+use List::Util   ();
+use File::Spec   ();
+use Params::Util '_INSTANCE';
 
 # Autoload anything any of our children might need
 use Class::Autouse 'File::Flat',
@@ -23,7 +23,7 @@ use Archive::Builder::Generators ();
 # Version
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
 	$errstr  = '';
 }
 
@@ -100,8 +100,8 @@ sub _archive_content {
 
 # Add an existing section
 sub add_section {
-	my $self = shift;
-	my $Section = isa($_[0], 'Archive::Builder::Section') ? shift : return undef;
+	my $self    = shift;
+	my $Section = _INSTANCE(shift, 'Archive::Builder::Section') or return undef;
 
 	# Does a section with the name already exists?
 	my $name = $Section->name;
@@ -245,7 +245,7 @@ sub _relative_path {
 	my $canon = File::Spec->canonpath( $string );
 
 	# Does the path contain escaping forward slashes
-	unless ( isa('File::Spec', 'File::Spec::Win32') ) {
+	unless ( File::Spec->isa('File::Spec::Win32') ) {
 		return '' if $string =~ /\\/;
 	}
 
@@ -697,7 +697,7 @@ Contact the author
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
 
 =head1 SEE ALSO
 

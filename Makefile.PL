@@ -1,24 +1,26 @@
-require 5.000;
-use ExtUtils::MakeMaker;
-WriteMakefile(
-	'NAME'         => 'Archive::Builder',
-	'VERSION_FROM' => 'lib/Archive/Builder.pm',
-	'PREREQ_PM'    => {
-		# Needed by Archive Builder
-		'File::Spec'       => '0.82',
-		'File::Flat'       => '0.92',
-		'Class::Autouse'   => '1.04',
-		'Class::Inspector' => '1.06',
-		'IO::Scalar'       => '2.104',
-		'IO::Zlib'         => '0',
-		'List::Util'       => '1.11',
+use inc::Module::Install;
 
-		# Needed by tests
-		'Test::More'       => '0.47',
-		'Test::ClassAPI'   => '1.02',
-	},
-	($] >= 5.005) ? (
-		'AUTHOR'   => 'Adam Kennedy (cpan@ali.as)',
-		'ABSTRACT' => 'In-memory file tree and archive generation framework',
-	) : (),
-);
+name            'Archive-Builder';
+all_from        'lib/Archive/Builder.pm';
+requires        'List::Util'       => '1.15';
+requires        'File::Spec'       => '0.80';
+requires        'File::Flat'       => '0.92';
+requires        'Class::Autouse'   => '1.04';
+requires        'Class::Inspector' => '1.11';
+requires        'IO::Scalar'       => '2.104';
+requires        'IO::Zlib'         => 0;
+requires        'Params::Util'     => '0.10';
+build_requires  'Test::More'       => '0.47';
+build_requires  'Class::Inspector' => '1.11'; # Needed by Test::ClassAPI
+build_requires  'Test::ClassAPI'   => '1.02';
+include         'Test::ClassAPI';
+
+# When testing, have all the archive drivers available
+if ( $ENV{AUTOMATED_TESTING} ) {
+	requires 'Archive::Zip'   => 0;
+	requires 'Archive::Tar'   => 0;
+	requires 'Compress::Zlib' => 0;
+}
+
+auto_install;
+WriteAll;

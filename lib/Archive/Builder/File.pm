@@ -3,13 +3,13 @@ package Archive::Builder::File;
 # This package represents a single file in the Archive::Builder structure
 
 use strict;
-use UNIVERSAL 'isa';
 use Scalar::Util 'refaddr';
+use Params::Util '_SCALAR0';
 use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
 	%_PARENT = ();
 }
 
@@ -139,7 +139,7 @@ sub _contents {
 	my $result = $self->{arguments}
 		? &{ $generator }( $self, @{ $self->{arguments} } )
 		: &{ $generator }( $self );
-	return undef unless isa( $result, 'SCALAR' );
+	_SCALAR0($result) or return undef;
 
 	# Clean up newlines in text files
 	if ( index($$result, "\000") == -1 ) { # If not a binary file
