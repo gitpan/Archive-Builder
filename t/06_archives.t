@@ -1,25 +1,14 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Tests for whether making Archives actually works
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
-use Test::More tests => 41;
+use Test::More;
 use File::Flat;
 use Archive::Builder;
 
@@ -52,27 +41,41 @@ $files = {
 init();
 
 
-
-
-
+my %archive_types = (
+ 'tar'    => \&test_tar,
+ 'tgz'    => \&test_tgz,
+ 'tar.gz' => \&test_tar_gz,
+ 'zip'    => \&test_zip,
+);
 
 # First, identify the types that we can build
 my @types = Archive::Builder::Archive->types;
+
+my $tests = 1;
+foreach ( @types ) {
+  $tests += 3;
+  if ( $archive_types{$_} ) {
+    $tests += 7;
+  } else {
+    diag "No test for type '$_'";
+  }
+}
+foreach my $type (keys %archive_types) {
+  diag "Skipping test of '$type' files due to missing dependency" if ! grep {$_ eq $type} @types
+}
+
+plan tests => $tests;
+
 ok( scalar @types, 'You can build at least one type of archive' );
 
 
 # Test the types they have available
 foreach ( @types ) {
 	test_common( $_ );
-	if ( $_ eq 'tar' ) {
-		test_tar();
-	} elsif ( $_ eq 'tgz' ) {
-		test_tgz();
-	} elsif ( $_ eq 'tar.gz' ) {
-		test_tar_gz();
-	} elsif ( $_ eq 'zip' ) {
-		test_zip();
+	if ( $archive_types{$_} ) {
+		$archive_types{$_}->();
 	}
+	# TODO handle case of invalid type
 }
 
 
@@ -162,7 +165,7 @@ sub test_zip {
         # Does the string match the expected value
         ok( ref($scalar) eq 'SCALAR', '->generate returns a scalar ref' );
         ok( $$scalar =~ /^PK/, 'Contents appears to be zipped' );
-        ok( length $$scalar > 470, 'Length appears to be long enough to contain everything' );
+        ok( length $$scalar > 400, 'Length appears to be long enough to contain everything' );
 
         # Save the file
         ok( $Archive->save( 'first' ), '->save returns true' );

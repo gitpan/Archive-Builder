@@ -1,16 +1,12 @@
 Changes
-inc/Module/AutoInstall.pm
 inc/Module/Install.pm
-inc/Module/Install/AutoInstall.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
 inc/Module/Install/Fetch.pm
-inc/Module/Install/Include.pm
 inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
-inc/Test/ClassAPI.pm
 lib/Archive/Builder.pm
 lib/Archive/Builder/Archive.pm
 lib/Archive/Builder/File.pm
@@ -28,4 +24,4 @@ t/04_practical.t
 t/05_generators.t
 t/06_archives.t
 t/07_binary.t
-t/99_pod.t
+t/99_author.t
