@@ -10,7 +10,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.07';
+	$VERSION = '1.08';
 }
 
 
@@ -66,15 +66,18 @@ sub new {
 
 	# Get the generated files
 	my $files = $Source->_archive_content;
-	unless ( $files ) {
-		return $class->_error( "Error generating content to create archive" );
-	}
+	return $class->_error(
+			"Error generating content to create archive: "
+			. $Source->errstr || 'Unknown Error'
+			) unless $files;
 
 	# Create the object
-	bless {
+	my $self = bless {
 		type => $type,
 		files => $files,
 		}, $class;
+
+	$self;
 }
 
 # Get the type
