@@ -10,7 +10,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.08';
+	$VERSION = '1.10';
 }
 
 
@@ -67,13 +67,13 @@ sub new {
 	# Get the generated files
 	my $files = $Source->_archive_content;
 	return $class->_error(
-			"Error generating content to create archive: "
-			. $Source->errstr || 'Unknown Error'
-			) unless $files;
+		"Error generating content to create archive: "
+		. $Source->errstr || 'Unknown Error'
+		) unless $files;
 
 	# Create the object
 	my $self = bless {
-		type => $type,
+		type  => $type,
 		files => $files,
 		}, $class;
 
@@ -81,7 +81,34 @@ sub new {
 }
 
 # Get the type
-sub type { $_[0]->{type} }
+sub type {
+	$_[0]->{type};
+}
+
+# Get the file hahs
+sub files {
+	$_[0]->{files};
+}
+
+# Get them in the special sorted order
+sub sorted_files {
+	my $self  = shift;
+	my @files = sort keys %{$self->files};
+	return () unless @files;
+	my $first = undef;
+        my $parts = undef;
+	foreach ( 0 .. $#files ) {
+		my @f    = split /\//, $files[$_];
+		my $this = scalar @f;
+                if ( defined $parts and $this >= $parts ) {
+                        next;
+                }
+		$first = $_;
+                $parts = $this;
+	}
+	unshift @files, splice( @files, $first, 1 );
+        return @files;
+}
 
 # Get the generated file as a scalar ref
 sub generate {
@@ -181,7 +208,7 @@ sub _tar {
 	}
 
 	# Add each file to it
-	foreach my $path ( keys %{ $self->{files} } ) {
+	foreach my $path ( $self->sorted_files ) {
 		$Archive->add_data( $path, ${ $self->{files}->{$path} } );
 	}
 
