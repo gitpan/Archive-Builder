@@ -25,7 +25,7 @@ use Archive::Builder::Generators ();
 # Version
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.11';
+	$VERSION = '1.12';
 	$errstr  = '';
 }
 
@@ -85,7 +85,7 @@ sub _archive_content {
 		my $subtree = $Section->_archive_content or return undef;
 		my $path = $Section->path;
 		foreach ( keys %$subtree ) {
-			my $full = File::Spec->catfile( $path, $_ );
+			my $full = File::Spec::Unix->catfile( $path, $_ );
 			$tree{$full} = $subtree->{$_};
 		}
 	}
@@ -697,7 +697,7 @@ Contact the author
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
 
 =head1 SEE ALSO
 
@@ -706,7 +706,7 @@ L<Archive::Tar>, L<Archive::Zip>.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2002-2004 Adam Kennedy. All rights reserved.
+Copyright (c) 2002-2004 Adam Kennedy.
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

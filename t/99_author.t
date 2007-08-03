@@ -12,11 +12,11 @@ unless ( $ENV{AUTOMATED_TESTING} ) {
 	plan( skip_all => "Author tests not required for installation" );
 }
 
-# Can we run the POD tests?
+# Load the testing modules
 eval "use Test::Pod 1.00";
-if ( $@ ) {
-	plan( skip_all => "Test::Pod 1.00 required for testing POD" );
-}
+
+# Can we run the version tests
+eval "use Test::MinimumVersion;";
 
 
 
@@ -29,7 +29,10 @@ if ( $@ ) {
 # Hack Pod::Simple::BlackBox to ignore the Test::Inline
 # "Extended Begin" syntax.
 # For example, "=begin has more than one word errors"
-my $begin = \&Pod::Simple::BlackBox::_ponder_begin;
+my $begin;
+if ( $Test::Pod::VERSION ) {
+	$begin = \&Pod::Simple::BlackBox::_ponder_begin;
+}
 sub mybegin {
 	my $para = $_[1];
 	my $content = join ' ', splice @$para, 2;
@@ -50,12 +53,24 @@ sub mybegin {
 
 SCOPE: {
 	local $^W = 0;
-	*Pod::Simple::BlackBox::_ponder_begin = \&mybegin;
+	if ( $Test::Pod::VERSION ) {
+		*Pod::Simple::BlackBox::_ponder_begin = \&mybegin;
+	}
 }
 
 #####################################################################
 # END BLACK MAGIC
 #####################################################################
 
+plan( 'no_plan' );
+ok( 1, "Running author tests" );
+
 # Test POD
-all_pod_files_ok();
+if ( $Test::Pod::VERSION ) {
+	all_pod_files_ok();
+}
+
+# Test version
+if ( $Test::MinimumVersion::VERSION and $Test::MinimumVersion::VERSION > 0.05 ) {
+	all_minimum_version_from_metayml_ok();
+}
