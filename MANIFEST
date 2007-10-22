@@ -25,4 +25,5 @@ t/05_generators.t
 t/06_archives.t
 t/07_binary.t
 t/08_sorted_files.t
-t/99_author.t
+t/98_pod.t
+t/99_pmv.t

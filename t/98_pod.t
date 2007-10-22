@@ -12,11 +12,14 @@ unless ( $ENV{AUTOMATED_TESTING} ) {
 	plan( skip_all => "Author tests not required for installation" );
 }
 
-# Load the testing modules
+# Load the testing modules if we can
 eval "use Test::Pod 1.00";
+if ( $@ ) {
+	plan( skip_all => "Test::Pod not available for testing" );
+}
 
-# Can we run the version tests
-eval "use Test::MinimumVersion;";
+all_pod_files_ok();
+exit(0);
 
 
 
@@ -62,15 +65,3 @@ SCOPE: {
 # END BLACK MAGIC
 #####################################################################
 
-plan( 'no_plan' );
-ok( 1, "Running author tests" );
-
-# Test POD
-if ( $Test::Pod::VERSION ) {
-	all_pod_files_ok();
-}
-
-# Test version
-if ( $Test::MinimumVersion::VERSION and $Test::MinimumVersion::VERSION > 0.05 ) {
-	all_minimum_version_from_metayml_ok();
-}
