@@ -25,7 +25,7 @@ use Archive::Builder::Generators ();
 # Version
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.13';
+	$VERSION = '1.14';
 	$errstr  = '';
 }
 
@@ -693,11 +693,15 @@ Better control over caching, more archive types, pre-generation testing.
 
 =head1 SUPPORT
 
-Contact the author
+Bugs should always be submitted via the CPAN bug tracker.
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Archive-Builder>
+
+For other issues, contact the maintainer.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -706,7 +710,8 @@ L<Archive::Tar>, L<Archive::Zip>.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2002-2004 Adam Kennedy.
+Copyright 2002 - 2008 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

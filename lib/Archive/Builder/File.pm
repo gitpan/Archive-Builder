@@ -9,7 +9,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '1.13';
+	$VERSION = '1.14';
 	%_PARENT = ();
 }
 
@@ -35,7 +35,7 @@ sub new {
 
 	# Create the File object
 	bless {
-		path => $path,
+		path      => $path,
 		generator => $generator,
 		arguments => @_ ? [ @_ ] : 0,
 		}, $class;
