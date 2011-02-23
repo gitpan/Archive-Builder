@@ -2,6 +2,7 @@ Changes
 inc/Module/Install.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
+inc/Module/Install/DSL.pm
 inc/Module/Install/Fetch.pm
 inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
@@ -18,13 +19,12 @@ MANIFEST			This list of files
 META.yml
 README
 t/01_compile.t
-t/02_api.t
 t/03_main.t
 t/04_practical.t
 t/05_generators.t
 t/06_archives.t
 t/07_binary.t
 t/08_sorted_files.t
-t/97_meta.t
-t/98_pod.t
-t/99_pmv.t
+xt/meta.t
+xt/pmv.t
+xt/pod.t

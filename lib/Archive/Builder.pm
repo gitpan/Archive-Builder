@@ -6,15 +6,15 @@ package Archive::Builder;
 use 5.005;
 use strict;
 use Scalar::Util     ();
-use List::Util       ();
-use File::Spec       ();
+use List::Util   1.15 ();
+use File::Spec  0.80 ();
 use File::Spec::Unix ();
-use Params::Util     '_INSTANCE', '_STRING';
-use Class::Inspector ();
-use IO::String       ();
+use Params::Util 0.22 ('_INSTANCE', '_STRING');
+use Class::Inspector 1.12 ();
+use IO::String     1.08 ();
 
 # Autoload anything any of our children might need
-use Class::Autouse 'File::Flat';
+use Class::Autouse 1.27 ('File::Flat');
 
 # Load the rest of the classes;
 use Archive::Builder::Section    ();
@@ -25,7 +25,7 @@ use Archive::Builder::Generators ();
 # Version
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.14';
+	$VERSION = '1.15';
 	$errstr  = '';
 }
 
@@ -710,7 +710,7 @@ L<Archive::Tar>, L<Archive::Zip>.
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2008 Adam Kennedy.
+Copyright 2002 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

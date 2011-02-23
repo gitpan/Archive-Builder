@@ -10,7 +10,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.14';
+	$VERSION = '1.15';
 }
 
 
@@ -214,7 +214,11 @@ sub _tar {
 
 	# Get the output
 	my $string = $Archive->write;
-	$string ? \$string : undef;
+
+	# Free up some memory
+	$Archive->clear;
+
+	return $string ? \$string : undef;
 }
 
 sub _tar_gz {
@@ -322,7 +326,7 @@ L<Archive::Tar>, L<Archive::Zip>.
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2008 Adam Kennedy.
+Copyright 2002 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
