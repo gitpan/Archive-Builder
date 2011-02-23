@@ -23,11 +23,17 @@ no_index:
 requires:
   Archive::Tar: 1.30
   Archive::Zip: 1.18
+  Class::Autouse: 1.27
+  Class::Inspector: 1.12
   File::Flat: 1.00
+  File::Spec: 0.80
+  IO::String: 1.08
   IO::Zlib: 0
+  List::Util: 1.15
+  Params::Util: 0.22
   perl: 5.005
 resources:
   ChangeLog: http://fisheye2.atlassian.com/changelog/cpan/trunk/Archive-Builder
   license: http://dev.perl.org/licenses/
   repository: http://svn.ali.as/cpan/trunk/Archive-Builder
-version: 1.15
+version: 1.16
